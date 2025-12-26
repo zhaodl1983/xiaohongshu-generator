@@ -2,13 +2,17 @@
 """
 小红书图文生成工具
 读取长文 -> AI 总结为幻灯片 -> 渲染 HTML -> Playwright 截图
+支持 Markdown 富文本输入和智能图片分配
 """
 
 import json
 import os
+import re
 import asyncio
 from pathlib import Path
+from urllib.parse import urlparse
 
+import requests
 from jinja2 import Environment, FileSystemLoader
 from playwright.async_api import async_playwright
 import google.generativeai as genai
@@ -22,18 +26,137 @@ def read_input_file(filepath: str = "input.txt") -> str:
         return f.read()
 
 
-def summarize_to_slides(content: str) -> dict:
-    """调用 Gemini API 将长文总结为幻灯片格式的 JSON，AI 自主决定图片数量"""
+def extract_images_from_markdown(content: str) -> tuple[str, list[str]]:
+    """
+    从 Markdown 内容中提取图片 URL
+    返回: (纯文本内容, 图片URL列表)
+    """
+    # 匹配 Markdown 图片语法: ![alt](url)
+    image_pattern = r'!\[([^\]]*)\]\(([^)]+)\)'
+    
+    images = []
+    
+    def replace_image(match):
+        alt_text = match.group(1)
+        url = match.group(2).strip()
+        
+        # 跳过 GIF 图片
+        if url.lower().endswith('.gif'):
+            return f'[图片: {alt_text}]' if alt_text else ''
+        
+        # 只接受网络图片
+        if url.startswith(('http://', 'https://')):
+            images.append(url)
+            return f'[图片: {alt_text}]' if alt_text else ''
+        
+        return f'[图片: {alt_text}]' if alt_text else ''
+    
+    # 替换图片标记，提取纯文本
+    text_content = re.sub(image_pattern, replace_image, content)
+    
+    # 清理多余空行
+    text_content = re.sub(r'\n{3,}', '\n\n', text_content)
+    
+    return text_content.strip(), images
+
+
+def validate_image_url(url: str, timeout: int = 5) -> bool:
+    """
+    验证图片 URL 是否可访问
+    使用 HEAD 请求检查，失败则静默跳过
+    """
+    try:
+        response = requests.head(url, timeout=timeout, allow_redirects=True)
+        if response.status_code == 200:
+            content_type = response.headers.get('content-type', '')
+            # 检查是否为图片类型
+            return 'image' in content_type.lower()
+        return False
+    except Exception:
+        return False
+
+
+def filter_valid_images(image_urls: list[str]) -> list[str]:
+    """
+    过滤有效的图片 URL
+    - 跳过 GIF
+    - 验证 URL 可访问性
+    """
+    valid_images = []
+    
+    for url in image_urls:
+        # 再次检查 GIF（双重保险）
+        if url.lower().endswith('.gif'):
+            continue
+        
+        # 检查支持的格式
+        parsed = urlparse(url)
+        path_lower = parsed.path.lower()
+        supported_formats = ('.png', '.jpg', '.jpeg', '.webp')
+        
+        # 如果 URL 路径有明确的扩展名，检查是否支持
+        has_extension = any(path_lower.endswith(ext) for ext in supported_formats + ('.gif',))
+        
+        if has_extension and not any(path_lower.endswith(ext) for ext in supported_formats):
+            continue
+        
+        # 验证 URL 可访问性
+        if validate_image_url(url):
+            valid_images.append(url)
+    
+    return valid_images
+
+
+def summarize_to_slides(content: str, image_urls: list[str] = None) -> dict:
+    """
+    调用 Gemini API 将长文总结为幻灯片格式的 JSON，AI 自主决定图片数量
+    如果提供了图片 URL 列表，AI 会智能分配图片到对应卡片
+    """
     genai.configure(api_key=config.GEMINI_API_KEY)
     model = genai.GenerativeModel(config.MODEL_NAME)
     
     char_count = len(content)
+    has_images = image_urls and len(image_urls) > 0
+    
+    # 构建图片分配说明
+    image_instruction = ""
+    if has_images:
+        image_list = "\n".join([f"  {i+1}. {url}" for i, url in enumerate(image_urls)])
+        image_instruction = f"""
 
-    prompt = f"""你是一个专业的内容编辑，擅长将长文总结为小红书风格的图文内容。
+【图片分配任务】
+用户提供了 {len(image_urls)} 张图片，请根据内容相关度智能分配到卡片中：
 
-请分析下面的长文，根据内容的信息量、结构和逻辑，自主决定需要多少张内容幻灯片（5-8张），输出严格的 JSON 格式：
+可用图片列表：
+{image_list}
 
-{{
+图片分配规则：
+1. 每张卡片最多分配 1 张图片
+2. 根据图片 URL 和内容的相关性进行匹配
+3. 如果图片数量 > 卡片数量：丢弃相关度最低的图片
+4. 如果图片数量 < 卡片数量：只为相关度最高的卡片分配图片，其他卡片的 image 设为 null
+5. 如果图片数量 = 卡片数量：按相关度一一分配
+6. 封面卡片也可以分配图片（cover_image 字段）
+
+输出格式中需要包含 cover_image 和每个 slide 的 image 字段：
+- 有图片时填入完整 URL
+- 无图片时填入 null
+"""
+    
+    # 构建 JSON 结构说明
+    json_structure = """{{
+    "cover_title": "封面大标题（简短有力，10字以内）",
+    "cover_subtitle": "封面副标题（一句话概括文章主旨）",
+    "cover_tags": ["标签1", "标签2", "标签3"],
+    "cover_image": null,
+    "slides": [
+        {{
+            "title": "第1张幻灯片标题",
+            "content": ["要点1", "要点2", "要点3", "要点4"],
+            "image": null
+        }}
+    ]
+}}""" if has_images else """{{
     "cover_title": "封面大标题（简短有力，10字以内）",
     "cover_subtitle": "封面副标题（一句话概括文章主旨）",
     "cover_tags": ["标签1", "标签2", "标签3"],
@@ -41,10 +164,16 @@ def summarize_to_slides(content: str) -> dict:
         {{
             "title": "第1张幻灯片标题",
             "content": ["要点1", "要点2", "要点3", "要点4"]
-        }},
-        // ... 根据内容自主决定张数（5-8张内容页）
+        }}
     ]
-}}
+}}"""
+
+    prompt = f"""你是一个专业的内容编辑，擅长将长文总结为小红书风格的图文内容。
+
+请分析下面的长文，根据内容的信息量、结构和逻辑，自主决定需要多少张内容幻灯片（5-8张），输出严格的 JSON 格式：
+
+{json_structure}
+{image_instruction}
 
 图片数量决策原则：
 - 分析文章的核心观点数量、信息密度、逻辑结构
@@ -90,7 +219,17 @@ def summarize_to_slides(content: str) -> dict:
         ),
     )
 
-    return json.loads(response.text)
+    result = json.loads(response.text)
+    
+    # 确保返回的数据结构包含图片字段（即使 AI 没有返回）
+    if 'cover_image' not in result:
+        result['cover_image'] = None
+    
+    for slide in result.get('slides', []):
+        if 'image' not in slide:
+            slide['image'] = None
+    
+    return result
 
 
 def render_html(slides_data: dict, style: str = "xiaohongshu") -> str:

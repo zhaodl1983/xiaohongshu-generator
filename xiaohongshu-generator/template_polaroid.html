@@ -148,6 +148,26 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
+        /* 图片样式 */
+        .card-image {
+            max-width: 100%;
+            max-height: 40%;
+            object-fit: cover;
+            background: #FFF;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .cover-image {
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .slide-image {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
         /* Content List */
         .content-list {
             padding: 60px;
@@ -178,6 +198,10 @@
                 <h1 class="cover-title">{{ cover_title }}</h1>
                 <p class="cover-subtitle">{{ cover_subtitle }}</p>
                 
+                {% if cover_image %}
+                <img class="card-image cover-image" src="{{ cover_image }}" alt="封面图片">
+                {% endif %}
+                
                 <!-- 动态标签 -->
                 <div class="cover-tags">
                     {% for tag in cover_tags %}
@@ -201,6 +225,9 @@
                     {% for item in slide.content %}
                     <div class="content-item">{{ item }}</div>
                     {% endfor %}
+                    {% if slide.image %}
+                    <img class="card-image slide-image" src="{{ slide.image }}" alt="内容图片">
+                    {% endif %}
                 </div>
             </div>
             <div class="handwriting">{{ loop.index }} / {{ slides|length }}</div>

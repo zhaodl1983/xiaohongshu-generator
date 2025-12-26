@@ -777,6 +777,126 @@
             background: #ffebee;
         }
         
+        /* 图片管理样式 */
+        .image-slot {
+            margin-top: 16px;
+            padding: 16px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 12px;
+            background: #fafafa;
+            transition: all 0.2s;
+        }
+
+        .image-slot:hover {
+            border-color: #667eea;
+            background: #f5f5ff;
+        }
+
+        .image-slot.has-image {
+            border-style: solid;
+            border-color: #667eea;
+            background: white;
+        }
+
+        .image-slot-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .image-slot-label {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .image-slot-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .image-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .image-action-btn.upload {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .image-action-btn.upload:hover {
+            background: #bbdefb;
+        }
+
+        .image-action-btn.delete {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .image-action-btn.delete:hover {
+            background: #ffcdd2;
+        }
+
+        .image-preview-container {
+            position: relative;
+            width: 100%;
+            max-height: 200px;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #f0f0f0;
+        }
+
+        .image-preview-container img {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .image-drop-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .image-drop-zone:hover {
+            color: #667eea;
+        }
+
+        .image-drop-zone-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .image-drop-zone-text {
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .image-drop-zone.dragover {
+            background: #e8f4fd;
+            border-color: #667eea;
+        }
+
+        /* 隐藏的文件输入 */
+        .hidden-file-input {
+            display: none;
+        }
+
         /* 加载状态 */
         .loading-state {
             display: none;
@@ -1084,6 +1204,7 @@
         let originalContent = ''; // 保存原始长文内容
         let currentViewerIndex = 0; // 当前查看的图片索引
         let editingSlideIndex = null; // 当前正在编辑的幻灯片索引
+        let extractedImages = []; // 从 Markdown 提取的图片列表
         
         // 风格选择 - 如果已有图片，直接切换风格
         document.querySelectorAll('.style-card').forEach(card => {
@@ -1182,6 +1303,7 @@
                 }
                 
                 currentSlidesData = data.slides_data;
+                extractedImages = data.extracted_images || [];
                 currentImages = []; // 清空图片
                 
                 // 显示预览编辑面板
@@ -1228,6 +1350,35 @@
             card.id = `edit-card-${index}`;
             
             let contentHtml = '';
+            const imageUrl = isCover ? (currentSlidesData.cover_image || '') : (data.image || '');
+            
+            // 图片插槽 HTML
+            const imageSlotHtml = `
+                <div class="image-slot ${imageUrl ? 'has-image' : ''}" id="image-slot-${index}">
+                    <div class="image-slot-header">
+                        <span class="image-slot-label">📷 图片（可选）</span>
+                        <div class="image-slot-actions">
+                            <button class="image-action-btn upload" onclick="triggerImageUpload(${index})">📤 上传</button>
+                            ${imageUrl ? `<button class="image-action-btn delete" onclick="deleteImage(${index})">🗑️ 删除</button>` : ''}
+                        </div>
+                    </div>
+                    <input type="file" class="hidden-file-input" id="file-input-${index}" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="handleFileSelect(event, ${index})">
+                    ${imageUrl ? `
+                        <div class="image-preview-container">
+                            <img src="${imageUrl}" alt="预览图片" id="image-preview-${index}">
+                        </div>
+                    ` : `
+                        <div class="image-drop-zone" id="drop-zone-${index}" 
+                             ondragover="handleDragOver(event, ${index})" 
+                             ondragleave="handleDragLeave(event, ${index})"
+                             ondrop="handleDrop(event, ${index})"
+                             onclick="triggerImageUpload(${index})">
+                            <div class="image-drop-zone-icon">🖼️</div>
+                            <div class="image-drop-zone-text">点击上传或拖拽图片到此处<br>支持粘贴 (Ctrl+V)</div>
+                        </div>
+                    `}
+                </div>
+            `;
             
             if (isCover) {
                 contentHtml = `
@@ -1246,6 +1397,7 @@
                             <input type="text" class="tag-input" id="tag-input-${index}" placeholder="输入标签后按回车" disabled onkeydown="handleTagInput(event, ${index})">
                         </div>
                     </div>
+                    ${imageSlotHtml}
                 `;
             } else {
                 const points = data.content || [];
@@ -1267,6 +1419,7 @@
                         </div>
                         <button class="add-point-btn" id="add-point-btn-${index}" onclick="addPoint(${index})" style="display: none;">+ 添加要点</button>
                     </div>
+                    ${imageSlotHtml}
                 `;
             }
             
@@ -1284,6 +1437,173 @@
             `;
             
             return card;
+        }
+        
+        // 图片上传相关函数
+        function triggerImageUpload(index) {
+            document.getElementById(`file-input-${index}`).click();
+        }
+        
+        function handleFileSelect(event, index) {
+            const file = event.target.files[0];
+            if (file) {
+                processImageFile(file, index);
+            }
+        }
+        
+        function handleDragOver(event, index) {
+            event.preventDefault();
+            event.stopPropagation();
+            const dropZone = document.getElementById(`drop-zone-${index}`);
+            if (dropZone) dropZone.classList.add('dragover');
+        }
+        
+        function handleDragLeave(event, index) {
+            event.preventDefault();
+            event.stopPropagation();
+            const dropZone = document.getElementById(`drop-zone-${index}`);
+            if (dropZone) dropZone.classList.remove('dragover');
+        }
+        
+        function handleDrop(event, index) {
+            event.preventDefault();
+            event.stopPropagation();
+            const dropZone = document.getElementById(`drop-zone-${index}`);
+            if (dropZone) dropZone.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                processImageFile(files[0], index);
+            }
+        }
+        
+        function processImageFile(file, index) {
+            // 检查文件类型
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('不支持的图片格式，仅支持 PNG、JPG、JPEG、WebP');
+                return;
+            }
+            
+            // 检查是否为 GIF
+            if (file.type === 'image/gif') {
+                alert('不支持 GIF 格式');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                updateImageSlot(index, e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function updateImageSlot(index, imageData) {
+            // 更新数据
+            if (index === 0) {
+                currentSlidesData.cover_image = imageData;
+            } else {
+                currentSlidesData.slides[index - 1].image = imageData;
+            }
+            
+            // 更新 UI
+            const slot = document.getElementById(`image-slot-${index}`);
+            slot.classList.add('has-image');
+            slot.innerHTML = `
+                <div class="image-slot-header">
+                    <span class="image-slot-label">📷 图片（可选）</span>
+                    <div class="image-slot-actions">
+                        <button class="image-action-btn upload" onclick="triggerImageUpload(${index})">📤 替换</button>
+                        <button class="image-action-btn delete" onclick="deleteImage(${index})">🗑️ 删除</button>
+                    </div>
+                </div>
+                <input type="file" class="hidden-file-input" id="file-input-${index}" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="handleFileSelect(event, ${index})">
+                <div class="image-preview-container">
+                    <img src="${imageData}" alt="预览图片" id="image-preview-${index}">
+                </div>
+            `;
+        }
+        
+        function deleteImage(index) {
+            // 更新数据
+            if (index === 0) {
+                currentSlidesData.cover_image = null;
+            } else {
+                currentSlidesData.slides[index - 1].image = null;
+            }
+            
+            // 更新 UI
+            const slot = document.getElementById(`image-slot-${index}`);
+            slot.classList.remove('has-image');
+            slot.innerHTML = `
+                <div class="image-slot-header">
+                    <span class="image-slot-label">📷 图片（可选）</span>
+                    <div class="image-slot-actions">
+                        <button class="image-action-btn upload" onclick="triggerImageUpload(${index})">📤 上传</button>
+                    </div>
+                </div>
+                <input type="file" class="hidden-file-input" id="file-input-${index}" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="handleFileSelect(event, ${index})">
+                <div class="image-drop-zone" id="drop-zone-${index}" 
+                     ondragover="handleDragOver(event, ${index})" 
+                     ondragleave="handleDragLeave(event, ${index})"
+                     ondrop="handleDrop(event, ${index})"
+                     onclick="triggerImageUpload(${index})">
+                    <div class="image-drop-zone-icon">🖼️</div>
+                    <div class="image-drop-zone-text">点击上传或拖拽图片到此处<br>支持粘贴 (Ctrl+V)</div>
+                </div>
+            `;
+        }
+        
+        // 全局粘贴事件处理
+        document.addEventListener('paste', function(event) {
+            // 检查是否在预览编辑面板中
+            const previewEditPanel = document.getElementById('previewEditPanel');
+            if (!previewEditPanel.classList.contains('visible')) return;
+            
+            // 检查是否有图片数据
+            const items = event.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    // 检查是否为 GIF
+                    if (items[i].type === 'image/gif') {
+                        alert('不支持 GIF 格式');
+                        return;
+                    }
+                    
+                    const file = items[i].getAsFile();
+                    
+                    // 找到当前聚焦的卡片或第一个没有图片的卡片
+                    let targetIndex = findTargetImageSlot();
+                    if (targetIndex !== null) {
+                        processImageFile(file, targetIndex);
+                    }
+                    break;
+                }
+            }
+        });
+        
+        function findTargetImageSlot() {
+            // 优先找当前聚焦的编辑卡片
+            const activeElement = document.activeElement;
+            if (activeElement) {
+                const card = activeElement.closest('.slide-edit-card');
+                if (card) {
+                    const index = parseInt(card.id.replace('edit-card-', ''));
+                    return index;
+                }
+            }
+            
+            // 否则找第一个没有图片的卡片
+            const totalCards = 1 + (currentSlidesData.slides?.length || 0);
+            for (let i = 0; i < totalCards; i++) {
+                const hasImage = i === 0 ? currentSlidesData.cover_image : currentSlidesData.slides[i - 1]?.image;
+                if (!hasImage) {
+                    return i;
+                }
+            }
+            
+            // 如果都有图片，返回封面
+            return 0;
         }
         
         // HTML 转义

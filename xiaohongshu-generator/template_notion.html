@@ -95,6 +95,24 @@
             color: #37352F;
         }
 
+        /* 图片样式 */
+        .card-image {
+            max-width: 100%;
+            max-height: 40%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .cover-image {
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .slide-image {
+            margin-top: 24px;
+            margin-bottom: 20px;
+        }
+
         /* Content */
         .card-content {
             padding: 80px 100px;
@@ -186,6 +204,10 @@
             <h1 class="cover-title">{{ cover_title }}</h1>
             <p class="cover-subtitle">{{ cover_subtitle }}</p>
             
+            {% if cover_image %}
+            <img class="card-image cover-image" src="{{ cover_image }}" alt="封面图片">
+            {% endif %}
+            
             <!-- 动态标签 -->
             <div class="cover-tags">
                 {% for tag in cover_tags %}
@@ -216,6 +238,10 @@
             </div>
             {% endfor %}
         </div>
+
+        {% if slide.image %}
+        <img class="card-image slide-image" src="{{ slide.image }}" alt="内容图片">
+        {% endif %}
 
         <div class="footer-note">
             <span>Last edited today</span>

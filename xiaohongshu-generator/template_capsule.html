@@ -129,6 +129,26 @@
             letter-spacing: 1px;
         }
 
+        /* 图片样式 */
+        .card-image {
+            max-width: 100%;
+            max-height: 40%;
+            object-fit: cover;
+            border-radius: 16px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 20px rgba(51, 255, 0, 0.2);
+        }
+
+        .cover-image {
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        .slide-image {
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
         /* Content */
         .card-content {
             padding: 60px;
@@ -221,6 +241,10 @@
         <h1 class="cover-title">{{ cover_title }}</h1>
         <p class="cover-subtitle">{{ cover_subtitle }}</p>
         
+        {% if cover_image %}
+        <img class="card-image cover-image" src="{{ cover_image }}" alt="封面图片">
+        {% endif %}
+        
         <!-- 动态标签 -->
         <div class="cover-tags">
             {% for tag in cover_tags %}
@@ -245,6 +269,10 @@
             </div>
             {% endfor %}
         </div>
+
+        {% if slide.image %}
+        <img class="card-image slide-image" src="{{ slide.image }}" alt="内容图片">
+        {% endif %}
 
         <div class="footer-info">/// SYSTEM_{{ loop.index }} ///</div>
     </div>

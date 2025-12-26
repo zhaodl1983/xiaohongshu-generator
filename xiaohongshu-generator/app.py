@@ -12,7 +12,7 @@ from flask import Flask, render_template, request, jsonify, send_file
 import zipfile
 import io
 
-from main import summarize_to_slides, render_html, capture_slides
+from main import summarize_to_slides, render_html, capture_slides, extract_images_from_markdown, filter_valid_images
 
 app = Flask(__name__)
 
@@ -66,7 +66,9 @@ def generate():
 
 @app.route('/preview', methods=['POST'])
 def preview():
-    """预览模式：只调用 AI 生成内容，不渲染图片"""
+    """预览模式：只调用 AI 生成内容，不渲染图片
+    支持 Markdown 格式输入，自动提取图片并智能分配
+    """
     try:
         data = request.json
         content = data.get('content', '')
@@ -76,12 +78,26 @@ def preview():
         
         print(f"🤖 调用 AI 生成内容（预览模式）")
         
-        # 调用 AI 生成幻灯片内容
-        slides_data = summarize_to_slides(content)
+        # 解析 Markdown，提取图片
+        text_content, image_urls = extract_images_from_markdown(content)
+        
+        # 过滤有效图片（跳过 GIF，验证可访问性）
+        valid_images = []
+        if image_urls:
+            print(f"📷 发现 {len(image_urls)} 张图片，正在验证...")
+            valid_images = filter_valid_images(image_urls)
+            print(f"✅ {len(valid_images)} 张图片验证通过")
+            if len(image_urls) - len(valid_images) > 0:
+                print(f"⚠️ {len(image_urls) - len(valid_images)} 张图片被跳过（GIF 或无法访问）")
+        
+        # 调用 AI 生成幻灯片内容（传入有效图片列表）
+        slides_data = summarize_to_slides(text_content, valid_images if valid_images else None)
         
         return jsonify({
             'success': True,
-            'slides_data': slides_data
+            'slides_data': slides_data,
+            'extracted_images': valid_images,  # 返回提取的图片列表供前端参考
+            'image_count': len(valid_images)
         })
         
     except Exception as e:
@@ -276,6 +292,86 @@ def download(filename):
     if filepath.exists():
         return send_file(filepath, as_attachment=True)
     return jsonify({'error': '文件不存在'}), 404
+
+
+@app.route('/upload-image', methods=['POST'])
+def upload_image():
+    """上传图片（用于手动添加图片到卡片）
+    支持 base64 格式或文件上传
+    """
+    try:
+        if 'file' in request.files:
+            # 文件上传方式
+            file = request.files['file']
+            if file.filename == '':
+                return jsonify({'error': '没有选择文件'}), 400
+            
+            # 检查文件类型
+            allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+            ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+            if ext not in allowed_extensions:
+                return jsonify({'error': f'不支持的图片格式，仅支持: {", ".join(allowed_extensions)}'}), 400
+            
+            # 读取并转为 base64
+            img_data = base64.b64encode(file.read()).decode('utf-8')
+            mime_type = f'image/{ext}' if ext != 'jpg' else 'image/jpeg'
+            
+            return jsonify({
+                'success': True,
+                'image_data': f'data:{mime_type};base64,{img_data}'
+            })
+        
+        elif request.json and 'image_data' in request.json:
+            # base64 方式（粘贴/拖拽）
+            image_data = request.json['image_data']
+            
+            # 验证是否为有效的 base64 图片
+            if not image_data.startswith('data:image/'):
+                return jsonify({'error': '无效的图片数据'}), 400
+            
+            # 检查是否为 GIF
+            if 'image/gif' in image_data:
+                return jsonify({'error': '不支持 GIF 格式'}), 400
+            
+            return jsonify({
+                'success': True,
+                'image_data': image_data
+            })
+        
+        else:
+            return jsonify({'error': '请提供图片文件或 base64 数据'}), 400
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/validate-image-url', methods=['POST'])
+def validate_image_url_endpoint():
+    """验证图片 URL 是否可访问"""
+    try:
+        data = request.json
+        url = data.get('url', '')
+        
+        if not url:
+            return jsonify({'valid': False, 'error': '请提供图片 URL'})
+        
+        # 检查是否为 GIF
+        if url.lower().endswith('.gif'):
+            return jsonify({'valid': False, 'error': '不支持 GIF 格式'})
+        
+        # 导入验证函数
+        from main import validate_image_url
+        
+        is_valid = validate_image_url(url)
+        
+        return jsonify({
+            'valid': is_valid,
+            'url': url if is_valid else None,
+            'error': None if is_valid else '图片无法访问'
+        })
+        
+    except Exception as e:
+        return jsonify({'valid': False, 'error': str(e)})
 
 @app.route('/download-all')
 def download_all():

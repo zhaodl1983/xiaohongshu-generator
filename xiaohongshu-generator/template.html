@@ -114,6 +114,26 @@
             border: 2px solid rgba(0, 0, 0, 0.1);
         }
 
+        /* 图片样式 */
+        .card-image {
+            max-width: 100%;
+            max-height: 40%;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .cover-image {
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        .slide-image {
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
         /* Content */
         .card-content {
             padding: 80px;
@@ -198,6 +218,10 @@
         <h1 class="cover-title">{{ cover_title }}</h1>
         <p class="cover-subtitle">{{ cover_subtitle }}</p>
         
+        {% if cover_image %}
+        <img class="card-image cover-image" src="{{ cover_image }}" alt="封面图片">
+        {% endif %}
+        
         <!-- 改用 AI 生成的标签，更贴合内容 -->
         <div class="cover-tags">
             {% for tag in cover_tags %}
@@ -222,6 +246,10 @@
             </div>
             {% endfor %}
         </div>
+
+        {% if slide.image %}
+        <img class="card-image slide-image" src="{{ slide.image }}" alt="内容图片">
+        {% endif %}
 
         <div class="page-indicator">{{ loop.index }} — {{ slides|length }}</div>
     </div>
