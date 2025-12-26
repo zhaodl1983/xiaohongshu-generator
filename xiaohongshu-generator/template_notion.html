@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notion 效率风</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: #F7F7F5;
+            padding: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 1242px;
+            height: 1660px;
+            background: #FFFFFF;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        /* Cover */
+        .card-cover {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cover-image-area {
+            height: 600px;
+            background-color: #F0F0F0;
+            background-image: url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=1242&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .cover-body {
+            padding: 0 100px 100px 100px;
+            margin-top: -80px;
+            z-index: 1;
+        }
+
+        .page-icon {
+            width: 160px;
+            height: 160px;
+            font-size: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            margin-bottom: 20px;
+        }
+
+        .cover-title {
+            font-size: 100px;
+            font-weight: 700;
+            color: #37352F;
+            line-height: 1.2;
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 2px solid #EAE9E6;
+        }
+
+        .cover-subtitle {
+            font-size: 40px;
+            color: #787774;
+            line-height: 1.6;
+        }
+
+        .cover-tags {
+            margin-top: 40px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .cover-tag {
+            padding: 10px 24px;
+            background: #F1F1EF;
+            border-radius: 6px;
+            font-size: 24px;
+            font-weight: 500;
+            color: #37352F;
+        }
+
+        /* Content */
+        .card-content {
+            padding: 80px 100px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide-header {
+            margin-bottom: 60px;
+        }
+
+        .breadcrumb {
+            font-size: 24px;
+            color: #9B9A97;
+            margin-bottom: 20px;
+        }
+
+        .slide-title {
+            font-size: 72px;
+            font-weight: 700;
+            color: #37352F;
+        }
+
+        .callout-block {
+            background: #F1F1EF;
+            padding: 40px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .content-list {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            font-size: 40px;
+            line-height: 1.6;
+            color: #37352F;
+        }
+
+        .checkbox {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #37352F;
+            border-radius: 4px;
+            margin-top: 14px;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background: #2EAADC;
+            border-color: #2EAADC;
+        }
+
+        .highlight-bg {
+            background: #FDECC8;
+            /* Yellow */
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+
+        .footer-note {
+            margin-top: auto;
+            border-top: 1px solid #EAE9E6;
+            padding-top: 30px;
+            color: #9B9A97;
+            font-size: 24px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Cover -->
+    <div class="card card-cover" id="card-1">
+        <div class="cover-image-area"></div>
+        <div class="cover-body">
+            <div class="page-icon">📑</div>
+            <h1 class="cover-title">{{ cover_title }}</h1>
+            <p class="cover-subtitle">{{ cover_subtitle }}</p>
+            
+            <!-- 动态标签 -->
+            <div class="cover-tags">
+                {% for tag in cover_tags %}
+                <span class="cover-tag">#{{ tag }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    {% for slide in slides %}
+    <div class="card card-content" id="card-{{ loop.index + 1 }}">
+        <div class="breadcrumb">Workspace / Project / {{ cover_title }}</div>
+        <div class="slide-header">
+            <h2 class="slide-title">{{ slide.title }}</h2>
+        </div>
+
+        <div class="callout-block">
+            <span style="font-size: 50px;">💡</span>
+            <div style="font-size: 36px; line-height: 1.5;">Key Takeaways for this section.</div>
+        </div>
+
+        <div class="content-list">
+            {% for item in slide.content %}
+            <div class="list-item">
+                <div class="checkbox"></div>
+                <div class="text">{{ item }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="footer-note">
+            <span>Last edited today</span>
+            <span>Page {{ loop.index }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</body>
+
+</html>

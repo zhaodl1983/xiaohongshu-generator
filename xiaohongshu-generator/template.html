@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Magazine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #EAEAEA;
+            padding: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 1242px;
+            height: 1660px;
+            background: #FFFFFF;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        /* Abstract Shapes */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            z-index: 0;
+        }
+
+        .blob-1 {
+            width: 800px;
+            height: 800px;
+            background: #FFD1FF;
+            top: -300px;
+            right: -200px;
+        }
+
+        .blob-2 {
+            width: 700px;
+            height: 700px;
+            background: #D1F2FF;
+            bottom: -200px;
+            left: -200px;
+        }
+
+        /* Cover */
+        .card-cover {
+            padding: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brand-pill {
+            align-self: flex-start;
+            padding: 12px 30px;
+            background: #000;
+            color: #FFF;
+            border-radius: 100px;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 60px;
+            z-index: 10;
+        }
+
+        .cover-title {
+            font-size: 110px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 40px;
+            color: #111;
+            z-index: 10;
+        }
+
+        .cover-subtitle {
+            font-size: 44px;
+            color: #555;
+            line-height: 1.6;
+            max-width: 900px;
+            z-index: 10;
+            border-left: 8px solid #000;
+            padding-left: 40px;
+        }
+
+        /* 移除固定配图，改用装饰性标签 */
+        .cover-tags {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 60px;
+            z-index: 10;
+        }
+
+        .cover-tag {
+            padding: 14px 32px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: 500;
+            color: #333;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Content */
+        .card-content {
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide-header {
+            margin-bottom: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 2px solid #EEE;
+            padding-bottom: 40px;
+        }
+
+        .slide-title {
+            font-size: 72px;
+            font-weight: 800;
+            color: #111;
+            max-width: 800px;
+        }
+
+        .slide-index {
+            font-size: 140px;
+            color: #F0F0F0;
+            font-weight: 900;
+            line-height: 0.8;
+            position: absolute;
+            right: 80px;
+            top: 60px;
+            z-index: 0;
+        }
+
+        .content-list {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+            z-index: 1;
+        }
+
+        .content-item {
+            display: flex;
+            align-items: baseline;
+            gap: 30px;
+        }
+
+        .dot {
+            width: 16px;
+            height: 16px;
+            background: #000;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .content-text {
+            font-size: 42px;
+            line-height: 1.5;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .page-indicator {
+            position: absolute;
+            bottom: 60px;
+            right: 80px;
+            font-size: 28px;
+            color: #999;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Cover -->
+    <div class="card card-cover" id="card-1">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+
+        <div class="brand-pill">INSIGHTS</div>
+        <h1 class="cover-title">{{ cover_title }}</h1>
+        <p class="cover-subtitle">{{ cover_subtitle }}</p>
+        
+        <!-- 改用 AI 生成的标签，更贴合内容 -->
+        <div class="cover-tags">
+            {% for tag in cover_tags %}
+            <span class="cover-tag">#{{ tag }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Content -->
+    {% for slide in slides %}
+    <div class="card card-content" id="card-{{ loop.index + 1 }}">
+        <div class="slide-index">{{ '%02d' % loop.index }}</div>
+        <div class="slide-header">
+            <h2 class="slide-title">{{ slide.title }}</h2>
+        </div>
+
+        <div class="content-list">
+            {% for item in slide.content %}
+            <div class="content-item">
+                <div class="dot"></div>
+                <div class="content-text">{{ item }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="page-indicator">{{ loop.index }} — {{ slides|length }}</div>
+    </div>
+    {% endfor %}
+</body>
+
+</html>

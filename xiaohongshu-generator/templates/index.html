@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RednoteGen - 小红书图文生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            min-height: 100vh;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 左侧输入区 */
+        .input-panel {
+            width: 380px;
+            background: #fff;
+            padding: 24px;
+            border-right: 1px solid #e5e5e5;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+        
+        .content-input {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            margin-bottom: 24px;
+            font-family: inherit;
+        }
+        
+        .content-input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+        
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .style-card {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .style-card.selected {
+            border-color: #ff6b6b;
+        }
+        
+        .style-card:hover {
+            transform: scale(1.02);
+        }
+        
+        .style-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .style-preview {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .style-name {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 6px;
+        }
+        
+        /* 风格预览 */
+        .preview-xiaohongshu {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+        
+        .preview-apple {
+            background: linear-gradient(135deg, #F5F5F7 0%, #FFFFFF 100%);
+            border: 1px solid #e0e0e0;
+        }
+        
+        .preview-dopamine {
+            background: linear-gradient(135deg, #8EC5FC 0%, #E0C3FC 100%);
+        }
+        
+        .preview-capsule {
+            background: #0D1117;
+            border: 1px solid #30363D;
+            position: relative;
+        }
+        
+        .preview-capsule::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #FF5F56;
+            box-shadow: 14px 0 0 #FFBD2E, 28px 0 0 #27C93F;
+        }
+        
+        .preview-capsule::after {
+            content: '# ';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #7EE787;
+            font-size: 24px;
+            font-family: monospace;
+        }
+        
+        .preview-tech {
+            background: linear-gradient(135deg, #1A1A1A 0%, #0a0a0a 100%);
+            position: relative;
+        }
+        
+        .preview-tech::before {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #00FFFF;
+            filter: blur(30px);
+            opacity: 0.5;
+            top: 10px;
+            right: 10px;
+        }
+        
+        .preview-notion {
+            background: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            position: relative;
+        }
+        
+        .preview-notion::before {
+            content: '☐';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            color: #37352F;
+        }
+        
+        .preview-memphis {
+            background: #FFDE59;
+            border: 3px solid #000000;
+            box-shadow: 4px 4px 0px #000000;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .preview-memphis::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #FF00FF;
+            border-radius: 50%;
+            top: 10px;
+            right: 10px;
+        }
+        
+        .preview-memphis::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: #00FFFF;
+            transform: rotate(45deg);
+            bottom: 10px;
+            left: 10px;
+        }
+        
+        .preview-chinese {
+            background: linear-gradient(135deg, #C04851 0%, #8FB2C9 100%);
+            border: 2px double #5D4037;
+            position: relative;
+        }
+        
+        .preview-chinese::before {
+            content: '◆';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .preview-chinese::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .preview-polaroid {
+            background: linear-gradient(135deg, #3a3a3a 0%, #1a1a1a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .preview-polaroid::before {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            background: #FDFDFD;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-3deg);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .preview-polaroid::after {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 15%;
+            background: #FDFDFD;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%) rotate(-3deg);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .generate-btn {
+            width: 100%;
+            padding: 16px;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        
+        .generate-btn:hover {
+            background: #333;
+        }
+        
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .generate-btn .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        
+        .generate-btn.loading .spinner {
+            display: block;
+        }
+        
+        .generate-btn.loading .btn-text {
+            display: none;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 右侧预览区 */
+        .preview-panel {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: #f5f5f7;
+        }
+        
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        
+        .preview-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .preview-title::before {
+            content: "📷";
+        }
+        
+        .download-all-btn {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .download-all-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .download-all-btn:active {
+            transform: translateY(0);
+        }
+        
+        .download-all-btn.visible {
+            display: flex;
+        }
+        
+        .slides-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        
+        .slide-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .slide-label {
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .slide-image-wrapper {
+            position: relative;
+            aspect-ratio: 3/4;
+            background: #f5f5f5;
+        }
+        
+        .slide-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .slide-actions {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .slide-image-wrapper:hover .slide-actions {
+            opacity: 1;
+        }
+        
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(0,0,0,0.8);
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        .empty-state-text {
+            font-size: 16px;
+        }
+        
+        /* 预览编辑模式样式 */
+        .preview-edit-panel {
+            display: none;
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .preview-edit-panel.visible {
+            display: block;
+        }
+        
+        .preview-edit-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .preview-edit-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .preview-edit-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .confirm-render-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .confirm-render-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .confirm-render-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .slide-edit-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #e5e5e5;
+            transition: all 0.2s;
+        }
+        
+        .slide-edit-card:hover {
+            border-color: #ddd;
+        }
+        
+        .slide-edit-card.editing {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .slide-edit-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .slide-edit-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .slide-edit-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .edit-btn, .regenerate-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .edit-btn {
+            background: #e8e8e8;
+            color: #333;
+        }
+        
+        .edit-btn:hover {
+            background: #ddd;
+        }
+        
+        .regenerate-btn {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        
+        .regenerate-btn:hover {
+            background: #ffe0b2;
+        }
+        
+        .regenerate-btn:disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+        
+        .slide-edit-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .edit-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .edit-field label {
+            font-size: 11px;
+            color: #888;
+            font-weight: 500;
+        }
+        
+        .edit-field input,
+        .edit-field textarea {
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .edit-field input:focus,
+        .edit-field textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .edit-field input:disabled,
+        .edit-field textarea:disabled {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .edit-field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .tags-input-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            min-height: 42px;
+            align-items: center;
+        }
+        
+        .tags-input-wrapper:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .tag-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .tag-remove {
+            cursor: pointer;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        .tag-remove:hover {
+            opacity: 1;
+        }
+        
+        .tag-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 100px;
+            font-size: 14px;
+            padding: 4px 0;
+        }
+        
+        .content-points {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .content-point {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .point-number {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-top: 10px;
+        }
+        
+        .content-point input {
+            flex: 1;
+        }
+        
+        .add-point-btn {
+            padding: 8px 12px;
+            background: #f0f0f0;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            color: #666;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .add-point-btn:hover {
+            background: #e8e8e8;
+            border-color: #999;
+        }
+        
+        .remove-point-btn {
+            padding: 8px 10px;
+            background: #fff0f0;
+            border: none;
+            border-radius: 6px;
+            color: #e53935;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        
+        .remove-point-btn:hover {
+            background: #ffebee;
+        }
+        
+        /* 加载状态 */
+        .loading-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #f0f0f0;
+            border-top-color: #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        .loading-text {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 图片预览弹窗 */
+        .image-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .image-viewer.active {
+            display: flex;
+        }
+        
+        .viewer-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+        }
+        
+        .viewer-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        
+        .viewer-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .viewer-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .viewer-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .viewer-nav:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .viewer-nav:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .viewer-nav:disabled:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-50%);
+        }
+        
+        .viewer-prev {
+            left: 20px;
+        }
+        
+        .viewer-next {
+            right: 20px;
+        }
+        
+        .viewer-counter {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .viewer-label {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+        }
+        
+        /* 图片卡片添加点击效果 */
+        .slide-image-wrapper {
+            cursor: pointer;
+        }
+        
+        .slide-image-wrapper:hover {
+            opacity: 0.95;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧输入区 -->
+        <div class="input-panel">
+            <div class="logo">
+                <div class="logo-icon">R</div>
+                <span class="logo-text">RednoteGen</span>
+            </div>
+            <p class="subtitle">Turn long articles into viral Xiaohongshu slides.</p>
+            
+            <textarea 
+                class="content-input" 
+                id="contentInput"
+                placeholder="在这里粘贴你的长文内容...&#10;&#10;支持 500-5000 字的文章，AI 会自动分析内容结构，智能决定生成 6-9 张图片。"
+            ></textarea>
+            
+            <h3 class="section-title">Choose Style</h3>
+            <div class="style-grid">
+                <div class="style-item">
+                    <div class="style-card selected" data-style="xiaohongshu">
+                        <div class="style-preview preview-xiaohongshu"></div>
+                    </div>
+                    <div class="style-name">小红书</div>
+                </div>
+                <div class="style-item">
+                    <div class="style-card" data-style="apple">
+                        <div class="style-preview preview-apple"></div>
+                    </div>
+                    <div class="style-name">苹果极简</div>
+                </div>
+                <div class="style-item">
+                    <div class="style-card" data-style="dopamine">
+                        <div class="style-preview preview-dopamine"></div>
+                    </div>
+                    <div class="style-name">多巴胺</div>
+                </div>
+                <div class="style-item">
+                    <div class="style-card" data-style="capsule">
+                        <div class="style-preview preview-capsule"></div>
+                    </div>
+                    <div class="style-name">Capsule</div>
+                </div>
+                <div class="style-item">
+                    <div class="style-card" data-style="tech">
+                        <div class="style-preview preview-tech"></div>
+                    </div>
+                    <div class="style-name">知识胶囊</div>
+                </div>
+                <div class="style-item">
+                    <div class="style-card" data-style="notion">
+                        <div class="style-preview preview-notion"></div>
+                    </div>
+                    <div class="style-name">Notion</div>
+                </div>
+                <div class="style-item">
+                    <div class="style-card" data-style="memphis">
+                        <div class="style-preview preview-memphis"></div>
+                    </div>
+                    <div class="style-name">孟菲斯</div>
+                </div>
+                <div class="style-item">
+                    <div class="style-card" data-style="chinese">
+                        <div class="style-preview preview-chinese"></div>
+                    </div>
+                    <div class="style-name">新中式</div>
+                </div>
+                <div class="style-item">
+                    <div class="style-card" data-style="polaroid">
+                        <div class="style-preview preview-polaroid"></div>
+                    </div>
+                    <div class="style-name">拍立得</div>
+                </div>
+            </div>
+            
+            <button class="generate-btn" id="generateBtn" onclick="previewContent()">
+                <span class="spinner"></span>
+                <span class="btn-text">✨ 预览内容</span>
+            </button>
+        </div>
+        
+        <!-- 右侧预览区 -->
+        <div class="preview-panel">
+            <div class="preview-header">
+                <div class="preview-title">Preview</div>
+                <button class="download-all-btn" id="downloadAllBtn" onclick="downloadAll()">
+                    📦 批量下载
+                </button>
+            </div>
+            
+            <!-- 空状态 -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-state-icon">🖼️</div>
+                <div class="empty-state-text">输入内容后点击预览按钮，AI 将生成文字内容供你编辑</div>
+            </div>
+            
+            <!-- 预览编辑面板 -->
+            <div class="preview-edit-panel" id="previewEditPanel">
+                <div class="preview-edit-header">
+                    <div class="preview-edit-title">
+                        📝 内容预览与编辑
+                    </div>
+                    <div class="preview-edit-actions">
+                        <button class="confirm-render-btn" id="confirmRenderBtn" onclick="confirmAndRender()">
+                            🎨 确认并生成图片
+                        </button>
+                    </div>
+                </div>
+                <div id="slidesEditContainer"></div>
+            </div>
+            
+            <!-- 加载状态 -->
+            <div class="loading-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">AI 正在分析内容并生成图片，请稍候...</div>
+                <div class="loading-tip" style="margin-top: 16px; font-size: 13px; color: #999;">
+                    提示：切换风格不会重新调用 AI，只是重新渲染图片
+                </div>
+            </div>
+            
+            <!-- 图片网格 -->
+            <div class="slides-grid" id="slidesGrid" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <!-- 图片预览弹窗 -->
+    <div class="image-viewer" id="imageViewer">
+        <div class="viewer-container">
+            <button class="viewer-close" onclick="closeViewer()" title="关闭 (ESC)">✕</button>
+            <button class="viewer-nav viewer-prev" id="viewerPrev" onclick="navigateViewer(-1)" title="上一张 (←)">‹</button>
+            <button class="viewer-nav viewer-next" id="viewerNext" onclick="navigateViewer(1)" title="下一张 (→)">›</button>
+            <img class="viewer-image" id="viewerImage" src="" alt="">
+            <div class="viewer-label" id="viewerLabel"></div>
+            <div class="viewer-counter" id="viewerCounter"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentImages = [];
+        let currentSlidesData = null; // 保存 AI 生成的 JSON 数据
+        let originalContent = ''; // 保存原始长文内容
+        let currentViewerIndex = 0; // 当前查看的图片索引
+        let editingSlideIndex = null; // 当前正在编辑的幻灯片索引
+        
+        // 风格选择 - 如果已有图片，直接切换风格
+        document.querySelectorAll('.style-card').forEach(card => {
+            card.addEventListener('click', async () => {
+                const previousSelected = document.querySelector('.style-card.selected');
+                const newStyle = card.dataset.style;
+                
+                document.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                
+                // 如果已有生成的图片，且切换了风格，则重新渲染
+                if (currentImages.length > 0 && previousSelected?.dataset.style !== newStyle) {
+                    await regenerateWithStyle(newStyle);
+                }
+            });
+        });
+        
+        async function regenerateWithStyle(style) {
+            const loadingState = document.getElementById('loadingState');
+            const loadingText = document.querySelector('.loading-text');
+            const slidesGrid = document.getElementById('slidesGrid');
+            
+            // 显示加载状态，修改提示文字
+            loadingText.textContent = '正在切换风格并重新渲染图片，请稍候...';
+            loadingState.style.display = 'flex';
+            slidesGrid.style.display = 'none';
+            
+            try {
+                const response = await fetch('/regenerate-style', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        slides_data: currentSlidesData,
+                        style: style 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                currentImages = data.images;
+                renderSlides(data.images);
+                
+                // 显示批量下载按钮
+                document.getElementById('downloadAllBtn').classList.add('visible');
+                
+            } catch (error) {
+                alert('切换风格失败: ' + error.message);
+            } finally {
+                loadingState.style.display = 'none';
+                // 恢复原始提示文字
+                loadingText.textContent = 'AI 正在分析内容并生成图片，请稍候...';
+            }
+        }
+        
+        // 预览内容（不生成图片）
+        async function previewContent() {
+            const content = document.getElementById('contentInput').value.trim();
+            
+            if (!content || content.length < 50) {
+                alert('请输入至少 50 字的内容');
+                return;
+            }
+            
+            originalContent = content; // 保存原始内容
+            
+            const btn = document.getElementById('generateBtn');
+            const emptyState = document.getElementById('emptyState');
+            const loadingState = document.getElementById('loadingState');
+            const previewEditPanel = document.getElementById('previewEditPanel');
+            const slidesGrid = document.getElementById('slidesGrid');
+            
+            // 显示加载状态
+            btn.classList.add('loading');
+            btn.disabled = true;
+            emptyState.style.display = 'none';
+            previewEditPanel.classList.remove('visible');
+            slidesGrid.style.display = 'none';
+            document.querySelector('.loading-text').textContent = 'AI 正在分析内容，请稍候...';
+            loadingState.style.display = 'flex';
+            
+            try {
+                const response = await fetch('/preview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                currentSlidesData = data.slides_data;
+                currentImages = []; // 清空图片
+                
+                // 显示预览编辑面板
+                renderPreviewEdit(data.slides_data);
+                previewEditPanel.classList.add('visible');
+                
+                // 隐藏下载按钮
+                document.getElementById('downloadAllBtn').classList.remove('visible');
+                
+            } catch (error) {
+                alert('预览失败: ' + error.message);
+                emptyState.style.display = 'flex';
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                loadingState.style.display = 'none';
+            }
+        }
+        
+        // 渲染预览编辑面板
+        function renderPreviewEdit(slidesData) {
+            const container = document.getElementById('slidesEditContainer');
+            container.innerHTML = '';
+            
+            // 封面卡片
+            const coverCard = createEditCard(0, 'COVER', {
+                title: slidesData.cover_title,
+                subtitle: slidesData.cover_subtitle,
+                tags: slidesData.cover_tags
+            }, true);
+            container.appendChild(coverCard);
+            
+            // 内容页卡片
+            slidesData.slides.forEach((slide, index) => {
+                const card = createEditCard(index + 1, `SLIDE ${index + 1}`, slide, false);
+                container.appendChild(card);
+            });
+        }
+        
+        // 创建编辑卡片
+        function createEditCard(index, label, data, isCover) {
+            const card = document.createElement('div');
+            card.className = 'slide-edit-card';
+            card.id = `edit-card-${index}`;
+            
+            let contentHtml = '';
+            
+            if (isCover) {
+                contentHtml = `
+                    <div class="edit-field">
+                        <label>标题</label>
+                        <input type="text" id="edit-title-${index}" value="${escapeHtml(data.title)}" disabled>
+                    </div>
+                    <div class="edit-field">
+                        <label>副标题</label>
+                        <input type="text" id="edit-subtitle-${index}" value="${escapeHtml(data.subtitle)}" disabled>
+                    </div>
+                    <div class="edit-field">
+                        <label>标签</label>
+                        <div class="tags-input-wrapper" id="tags-wrapper-${index}">
+                            ${(data.tags || []).map(tag => `<span class="tag-item">${escapeHtml(tag)}<span class="tag-remove" onclick="removeTag(${index}, '${escapeHtml(tag)}')">×</span></span>`).join('')}
+                            <input type="text" class="tag-input" id="tag-input-${index}" placeholder="输入标签后按回车" disabled onkeydown="handleTagInput(event, ${index})">
+                        </div>
+                    </div>
+                `;
+            } else {
+                const points = data.content || [];
+                contentHtml = `
+                    <div class="edit-field">
+                        <label>标题</label>
+                        <input type="text" id="edit-title-${index}" value="${escapeHtml(data.title)}" disabled>
+                    </div>
+                    <div class="edit-field">
+                        <label>内容要点</label>
+                        <div class="content-points" id="points-${index}">
+                            ${points.map((point, i) => `
+                                <div class="content-point" id="point-${index}-${i}">
+                                    <span class="point-number">${i + 1}</span>
+                                    <input type="text" value="${escapeHtml(point)}" disabled data-point-index="${i}">
+                                    <button class="remove-point-btn" onclick="removePoint(${index}, ${i})" style="display: none;">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="add-point-btn" id="add-point-btn-${index}" onclick="addPoint(${index})" style="display: none;">+ 添加要点</button>
+                    </div>
+                `;
+            }
+            
+            card.innerHTML = `
+                <div class="slide-edit-header">
+                    <span class="slide-edit-label">${label}</span>
+                    <div class="slide-edit-buttons">
+                        <button class="edit-btn" id="edit-btn-${index}" onclick="toggleEdit(${index}, ${isCover})">✏️ 编辑</button>
+                        <button class="regenerate-btn" id="regen-btn-${index}" onclick="regenerateSlide(${index})">🔄 重新生成</button>
+                    </div>
+                </div>
+                <div class="slide-edit-content">
+                    ${contentHtml}
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // HTML 转义
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 切换编辑模式
+        function toggleEdit(index, isCover) {
+            const card = document.getElementById(`edit-card-${index}`);
+            const btn = document.getElementById(`edit-btn-${index}`);
+            const isEditing = card.classList.contains('editing');
+            
+            if (isEditing) {
+                // 保存编辑
+                saveEdit(index, isCover);
+                card.classList.remove('editing');
+                btn.innerHTML = '✏️ 编辑';
+                
+                // 禁用输入
+                card.querySelectorAll('input, textarea').forEach(el => el.disabled = true);
+                card.querySelectorAll('.remove-point-btn').forEach(el => el.style.display = 'none');
+                const addBtn = document.getElementById(`add-point-btn-${index}`);
+                if (addBtn) addBtn.style.display = 'none';
+            } else {
+                // 进入编辑模式
+                card.classList.add('editing');
+                btn.innerHTML = '💾 保存';
+                
+                // 启用输入
+                card.querySelectorAll('input, textarea').forEach(el => el.disabled = false);
+                card.querySelectorAll('.remove-point-btn').forEach(el => el.style.display = 'block');
+                const addBtn = document.getElementById(`add-point-btn-${index}`);
+                if (addBtn) addBtn.style.display = 'block';
+            }
+        }
+        
+        // 保存编辑
+        function saveEdit(index, isCover) {
+            if (isCover) {
+                currentSlidesData.cover_title = document.getElementById(`edit-title-${index}`).value;
+                currentSlidesData.cover_subtitle = document.getElementById(`edit-subtitle-${index}`).value;
+                // 标签从 DOM 中获取
+                const tagsWrapper = document.getElementById(`tags-wrapper-${index}`);
+                const tags = Array.from(tagsWrapper.querySelectorAll('.tag-item')).map(el => el.textContent.replace('×', '').trim());
+                currentSlidesData.cover_tags = tags;
+            } else {
+                const slideIndex = index - 1;
+                currentSlidesData.slides[slideIndex].title = document.getElementById(`edit-title-${index}`).value;
+                // 内容要点从 DOM 中获取
+                const pointsContainer = document.getElementById(`points-${index}`);
+                const points = Array.from(pointsContainer.querySelectorAll('input')).map(el => el.value);
+                currentSlidesData.slides[slideIndex].content = points;
+            }
+        }
+        
+        // 标签输入处理
+        function handleTagInput(event, index) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const input = document.getElementById(`tag-input-${index}`);
+                const value = input.value.trim();
+                if (value) {
+                    addTag(index, value);
+                    input.value = '';
+                }
+            }
+        }
+        
+        // 添加标签
+        function addTag(index, tag) {
+            const wrapper = document.getElementById(`tags-wrapper-${index}`);
+            const input = document.getElementById(`tag-input-${index}`);
+            const tagEl = document.createElement('span');
+            tagEl.className = 'tag-item';
+            tagEl.innerHTML = `${escapeHtml(tag)}<span class="tag-remove" onclick="removeTag(${index}, '${escapeHtml(tag)}')">×</span>`;
+            wrapper.insertBefore(tagEl, input);
+        }
+        
+        // 移除标签
+        function removeTag(index, tag) {
+            const wrapper = document.getElementById(`tags-wrapper-${index}`);
+            const tagItems = wrapper.querySelectorAll('.tag-item');
+            tagItems.forEach(el => {
+                if (el.textContent.replace('×', '').trim() === tag) {
+                    el.remove();
+                }
+            });
+        }
+        
+        // 添加内容要点
+        function addPoint(index) {
+            const container = document.getElementById(`points-${index}`);
+            const pointCount = container.querySelectorAll('.content-point').length;
+            const pointDiv = document.createElement('div');
+            pointDiv.className = 'content-point';
+            pointDiv.id = `point-${index}-${pointCount}`;
+            pointDiv.innerHTML = `
+                <span class="point-number">${pointCount + 1}</span>
+                <input type="text" value="" data-point-index="${pointCount}">
+                <button class="remove-point-btn" onclick="removePoint(${index}, ${pointCount})" style="display: block;">×</button>
+            `;
+            container.appendChild(pointDiv);
+        }
+        
+        // 移除内容要点
+        function removePoint(index, pointIndex) {
+            const pointEl = document.getElementById(`point-${index}-${pointIndex}`);
+            if (pointEl) {
+                pointEl.remove();
+                // 重新编号
+                const container = document.getElementById(`points-${index}`);
+                container.querySelectorAll('.content-point').forEach((el, i) => {
+                    el.querySelector('.point-number').textContent = i + 1;
+                });
+            }
+        }
+        
+        // 重新生成单张幻灯片
+        async function regenerateSlide(index) {
+            const btn = document.getElementById(`regen-btn-${index}`);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ 生成中...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/regenerate-slide', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        slide_index: index,
+                        original_content: originalContent,
+                        slides_data: currentSlidesData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                currentSlidesData = data.slides_data;
+                
+                // 重新渲染该卡片
+                const isCover = index === 0;
+                const label = isCover ? 'COVER' : `SLIDE ${index}`;
+                const cardData = isCover ? {
+                    title: currentSlidesData.cover_title,
+                    subtitle: currentSlidesData.cover_subtitle,
+                    tags: currentSlidesData.cover_tags
+                } : currentSlidesData.slides[index - 1];
+                
+                const oldCard = document.getElementById(`edit-card-${index}`);
+                const newCard = createEditCard(index, label, cardData, isCover);
+                oldCard.replaceWith(newCard);
+                
+            } catch (error) {
+                alert('重新生成失败: ' + error.message);
+            } finally {
+                const newBtn = document.getElementById(`regen-btn-${index}`);
+                if (newBtn) {
+                    newBtn.innerHTML = originalText;
+                    newBtn.disabled = false;
+                }
+            }
+        }
+        
+        // 确认并生成图片
+        async function confirmAndRender() {
+            const style = document.querySelector('.style-card.selected')?.dataset.style || 'xiaohongshu';
+            const loadingState = document.getElementById('loadingState');
+            const previewEditPanel = document.getElementById('previewEditPanel');
+            const slidesGrid = document.getElementById('slidesGrid');
+            const confirmBtn = document.getElementById('confirmRenderBtn');
+            
+            // 保存所有正在编辑的内容
+            document.querySelectorAll('.slide-edit-card.editing').forEach(card => {
+                const index = parseInt(card.id.replace('edit-card-', ''));
+                const isCover = index === 0;
+                saveEdit(index, isCover);
+            });
+            
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = '⏳ 生成中...';
+            document.querySelector('.loading-text').textContent = '正在渲染图片，请稍候...';
+            loadingState.style.display = 'flex';
+            
+            try {
+                const response = await fetch('/render', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        slides_data: currentSlidesData,
+                        style: style
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                currentImages = data.images;
+                renderSlides(data.images);
+                
+                // 隐藏预览编辑面板，显示图片
+                previewEditPanel.classList.remove('visible');
+                slidesGrid.style.display = 'grid';
+                
+                // 显示批量下载按钮
+                document.getElementById('downloadAllBtn').classList.add('visible');
+                
+            } catch (error) {
+                alert('生成图片失败: ' + error.message);
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = '🎨 确认并生成图片';
+                loadingState.style.display = 'none';
+            }
+        }
+        
+        async function generateSlides() {
+            const content = document.getElementById('contentInput').value.trim();
+            const style = document.querySelector('.style-card.selected')?.dataset.style || 'xiaohongshu';
+            
+            if (!content || content.length < 50) {
+                alert('请输入至少 50 字的内容');
+                return;
+            }
+            
+            originalContent = content;
+            
+            const btn = document.getElementById('generateBtn');
+            const emptyState = document.getElementById('emptyState');
+            const loadingState = document.getElementById('loadingState');
+            const slidesGrid = document.getElementById('slidesGrid');
+            const previewEditPanel = document.getElementById('previewEditPanel');
+            
+            // 显示加载状态
+            btn.classList.add('loading');
+            btn.disabled = true;
+            emptyState.style.display = 'none';
+            previewEditPanel.classList.remove('visible');
+            loadingState.style.display = 'flex';
+            slidesGrid.style.display = 'none';
+            
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, style })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                currentImages = data.images;
+                currentSlidesData = data.slides_data;
+                renderSlides(data.images);
+                
+                // 显示批量下载按钮
+                document.getElementById('downloadAllBtn').classList.add('visible');
+                
+            } catch (error) {
+                alert('生成失败: ' + error.message);
+                emptyState.style.display = 'flex';
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                loadingState.style.display = 'none';
+            }
+        }
+        
+        function renderSlides(images) {
+            const grid = document.getElementById('slidesGrid');
+            grid.innerHTML = '';
+            
+            images.forEach((img, index) => {
+                const label = index === 0 ? 'COVER' : `SLIDE ${index}`;
+                const card = document.createElement('div');
+                card.className = 'slide-card';
+                card.innerHTML = `
+                    <div class="slide-label">${label}</div>
+                    <div class="slide-image-wrapper" onclick="openViewer(${index})">
+                        <img class="slide-image" src="${img.data}" alt="${label}">
+                        <div class="slide-actions">
+                            <button class="action-btn" onclick="event.stopPropagation(); downloadImage('${img.filename}')" title="下载">⬇️</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            
+            grid.style.display = 'grid';
+        }
+        
+        function downloadImage(filename) {
+            window.location.href = `/download/${filename}`;
+        }
+        
+        function downloadAll() {
+            if (currentImages.length === 0) {
+                alert('没有可下载的图片');
+                return;
+            }
+            window.location.href = '/download-all';
+        }
+        
+        // 打开图片查看器
+        function openViewer(index) {
+            currentViewerIndex = index;
+            updateViewer();
+            document.getElementById('imageViewer').classList.add('active');
+            document.body.style.overflow = 'hidden'; // 禁止背景滚动
+        }
+        
+        // 关闭图片查看器
+        function closeViewer() {
+            document.getElementById('imageViewer').classList.remove('active');
+            document.body.style.overflow = ''; // 恢复滚动
+        }
+        
+        // 切换图片
+        function navigateViewer(direction) {
+            currentViewerIndex += direction;
+            if (currentViewerIndex < 0) currentViewerIndex = 0;
+            if (currentViewerIndex >= currentImages.length) currentViewerIndex = currentImages.length - 1;
+            updateViewer();
+        }
+        
+        // 更新查看器内容
+        function updateViewer() {
+            const img = currentImages[currentViewerIndex];
+            const label = currentViewerIndex === 0 ? 'COVER' : `SLIDE ${currentViewerIndex}`;
+            
+            document.getElementById('viewerImage').src = img.data;
+            document.getElementById('viewerLabel').textContent = label;
+            document.getElementById('viewerCounter').textContent = `${currentViewerIndex + 1} / ${currentImages.length}`;
+            
+            // 更新按钮状态
+            document.getElementById('viewerPrev').disabled = currentViewerIndex === 0;
+            document.getElementById('viewerNext').disabled = currentViewerIndex === currentImages.length - 1;
+        }
+        
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            const viewer = document.getElementById('imageViewer');
+            if (!viewer.classList.contains('active')) return;
+            
+            if (e.key === 'Escape') {
+                closeViewer();
+            } else if (e.key === 'ArrowLeft') {
+                if (currentViewerIndex > 0) navigateViewer(-1);
+            } else if (e.key === 'ArrowRight') {
+                if (currentViewerIndex < currentImages.length - 1) navigateViewer(1);
+            }
+        });
+        
+        // 点击背景关闭
+        document.getElementById('imageViewer').addEventListener('click', (e) => {
+            if (e.target.id === 'imageViewer' || e.target.classList.contains('viewer-container')) {
+                closeViewer();
+            }
+        });
+    </script>
+</body>
+</html>

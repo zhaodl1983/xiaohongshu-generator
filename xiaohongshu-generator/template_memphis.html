@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memphis 孟菲斯</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            background: #E0F7FA;
+            padding: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 1242px;
+            height: 1660px;
+            background: #FFF;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        /* Memphis Pattern Background */
+        .pattern-bg {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(#000 15%, transparent 16%), radial-gradient(#000 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        /* Decorative Shapes */
+        .shape {
+            position: absolute;
+            z-index: 1;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 50px solid transparent;
+            border-right: 50px solid transparent;
+            border-bottom: 100px solid #FFD700;
+            transform: rotate(20deg);
+        }
+
+        .squiggle {
+            width: 150px;
+            height: 40px;
+            background: #FF6B6B;
+            border-radius: 20px;
+            transform: rotate(-15deg);
+        }
+
+        .circle {
+            width: 100px;
+            height: 100px;
+            background: #4ECDC4;
+            border-radius: 50%;
+        }
+
+        /* Cover */
+        .card-cover {
+            padding: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .cover-content-box {
+            background: #FFF;
+            padding: 80px 40px;
+            border: 4px solid #000;
+            box-shadow: 20px 20px 0px #4ECDC4;
+            position: relative;
+            z-index: 10;
+        }
+
+        .cover-title {
+            font-size: 100px;
+            font-weight: 900;
+            color: #000;
+            line-height: 1;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        .cover-subtitle {
+            font-size: 40px;
+            font-weight: bold;
+            color: #FF6B6B;
+            background: #000;
+            color: #FFF;
+            display: inline-block;
+            padding: 10px 20px;
+            transform: skew(-10deg);
+        }
+
+        .cover-tags {
+            margin-top: 40px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cover-tag {
+            padding: 12px 28px;
+            background: #FFD700;
+            border: 3px solid #000;
+            border-radius: 20px;
+            font-size: 28px;
+            font-weight: 900;
+            color: #000;
+            transform: rotate(-2deg);
+        }
+
+        .cover-tag:nth-child(even) {
+            transform: rotate(2deg);
+            background: #4ECDC4;
+        }
+
+        /* Content */
+        .card-content {
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-bg {
+            background: #000;
+            color: #FFF;
+            padding: 20px 40px;
+            display: inline-block;
+            font-size: 60px;
+            font-weight: 900;
+            margin-bottom: 60px;
+            box-shadow: 10px 10px 0px #FFD700;
+            align-self: flex-start;
+        }
+
+        .content-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            z-index: 2;
+        }
+
+        .memphis-item {
+            background: #F7F7F7;
+            border: 3px solid #000;
+            padding: 40px;
+            position: relative;
+        }
+
+        .memphis-item::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: -10px;
+            bottom: -10px;
+            background: transparent;
+            border-right: 3px solid #000;
+            border-bottom: 3px solid #000;
+            z-index: -1;
+        }
+
+        .item-text {
+            font-size: 38px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .footer-deco {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: repeating-linear-gradient(45deg, #000, #000 10px, #FFF 10px, #FFF 20px);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Cover -->
+    <div class="card card-cover" id="card-1">
+        <div class="pattern-bg"></div>
+        <div class="shape triangle" style="top:100px; left:100px;"></div>
+        <div class="shape circle" style="bottom:200px; right:120px;"></div>
+        <div class="shape squiggle" style="top:200px; right:80px;"></div>
+
+        <div class="cover-content-box">
+            <h1 class="cover-title">{{ cover_title }}</h1>
+            <div class="cover-subtitle">{{ cover_subtitle }}</div>
+            
+            <!-- 动态标签 -->
+            <div class="cover-tags">
+                {% for tag in cover_tags %}
+                <span class="cover-tag">#{{ tag }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="footer-deco"></div>
+    </div>
+
+    <!-- Content -->
+    {% for slide in slides %}
+    <div class="card card-content" id="card-{{ loop.index + 1 }}">
+        <div class="pattern-bg"></div>
+        <div class="header-bg">{{ slide.title }}</div>
+        <div class="content-container">
+            {% for item in slide.content %}
+            <div class="memphis-item">
+                <div class="item-text">{{ item }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="footer-deco"></div>
+    </div>
+    {% endfor %}
+</body>
+
+</html>

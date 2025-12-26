@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新中式国潮风</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Songti SC', 'Noto Serif SC', 'SimSun', serif;
+            background: #C04851;
+            padding: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 1242px;
+            height: 1660px;
+            background: #FDFBF7;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .card-cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 110px 100px;
+            position: relative;
+        }
+
+        .moon-circle {
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(192, 72, 81, 0.06) 0%, transparent 70%);
+            border: 2px solid rgba(192, 72, 81, 0.12);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .corner-decor {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 2px solid rgba(93, 64, 55, 0.15);
+        }
+
+        .corner-decor.top-left { top: 50px; left: 50px; border-right: none; border-bottom: none; }
+        .corner-decor.top-right { top: 50px; right: 50px; border-left: none; border-bottom: none; }
+        .corner-decor.bottom-left { bottom: 50px; left: 50px; border-right: none; border-top: none; }
+        .corner-decor.bottom-right { bottom: 50px; right: 50px; border-left: none; border-top: none; }
+
+        .cover-content { text-align: center; position: relative; z-index: 1; }
+
+        .cover-seal {
+            width: 72px;
+            height: 72px;
+            background: #C04851;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FDFBF7;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 auto 40px;
+            transform: rotate(-5deg);
+        }
+
+        .cover-title {
+            font-size: 84px;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 48px;
+            color: #3D2817;
+            letter-spacing: 6px;
+        }
+
+        .cover-divider {
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #5D4037, transparent);
+            margin: 0 auto 48px;
+            position: relative;
+        }
+
+        .cover-subtitle {
+            font-size: 38px;
+            color: #5D4037;
+            line-height: 1.8;
+            max-width: 900px;
+            letter-spacing: 2px;
+        }
+
+        .cover-tags {
+            margin-top: 48px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cover-tag {
+            padding: 12px 28px;
+            background: rgba(192, 72, 81, 0.1);
+            border: 2px solid rgba(192, 72, 81, 0.3);
+            border-radius: 6px;
+            font-size: 26px;
+            font-weight: 600;
+            color: #C04851;
+            letter-spacing: 2px;
+        }
+
+        .card-content {
+            padding: 90px 100px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card-content:nth-of-type(even) {
+            background: linear-gradient(180deg, #8FB2C9 0%, #A8C4D4 100%);
+        }
+
+        .slide-header {
+            text-align: center;
+            margin-bottom: 56px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide-number {
+            font-size: 38px;
+            color: #C04851;
+            margin-bottom: 28px;
+            letter-spacing: 3px;
+        }
+
+        .slide-title {
+            font-size: 64px;
+            font-weight: 700;
+            color: #3D2817;
+            line-height: 1.4;
+            letter-spacing: 4px;
+        }
+
+        .slide-divider {
+            width: 160px;
+            height: 2px;
+            background: #5D4037;
+            margin: 36px auto 0;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content-item {
+            background: rgba(253, 251, 247, 0.85);
+            border: 1px solid rgba(93, 64, 55, 0.15);
+            border-radius: 4px;
+            padding: 32px 40px;
+            text-align: center;
+        }
+
+        .content-text {
+            font-size: 36px;
+            line-height: 1.85;
+            color: #3D2817;
+            letter-spacing: 1px;
+        }
+
+        .page-indicator {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 22px;
+            color: #5D4037;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card card-cover" id="card-1">
+        <div class="moon-circle"></div>
+        <div class="corner-decor top-left"></div>
+        <div class="corner-decor top-right"></div>
+        <div class="corner-decor bottom-left"></div>
+        <div class="corner-decor bottom-right"></div>
+        <div class="cover-content">
+            <div class="cover-seal">知</div>
+            <h1 class="cover-title">{{ cover_title }}</h1>
+            <div class="cover-divider"></div>
+            <p class="cover-subtitle">{{ cover_subtitle }}</p>
+            
+            <!-- 动态标签 -->
+            <div class="cover-tags">
+                {% for tag in cover_tags %}
+                <span class="cover-tag">#{{ tag }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% for slide in slides %}
+    <div class="card card-content" id="card-{{ loop.index + 1 }}">
+        <div class="slide-header">
+            <div class="slide-number">〔 {{ ['壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌'][loop.index - 1] if loop.index <= 8 else loop.index }} 〕</div>
+            <h2 class="slide-title">{{ slide.title }}</h2>
+            <div class="slide-divider"></div>
+        </div>
+        <div class="content-wrapper">
+            {% for item in slide.content %}
+            <div class="content-item">
+                <span class="content-text">{{ item }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="page-indicator">第 {{ loop.index + 1 }} 页</div>
+    </div>
+    {% endfor %}
+</body>
+</html>

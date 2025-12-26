@@ -1,0 +1,305 @@
+#!/usr/bin/env python3
+"""
+小红书图文生成工具 - Web 版本
+Flask 后端服务
+"""
+
+import json
+import asyncio
+import base64
+from pathlib import Path
+from flask import Flask, render_template, request, jsonify, send_file
+import zipfile
+import io
+
+from main import summarize_to_slides, render_html, capture_slides
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    """主页"""
+    return render_template('index.html')
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    """生成图片 API"""
+    try:
+        data = request.json
+        content = data.get('content', '')
+        style = data.get('style', 'xiaohongshu')  # 预留风格参数
+        
+        if not content or len(content.strip()) < 50:
+            return jsonify({'error': '内容太短，请输入至少 50 字'}), 400
+        
+        print(f"🤖 调用 AI 生成内容 (风格: {style})")
+        
+        # 调用 AI 生成幻灯片内容
+        slides_data = summarize_to_slides(content)
+        
+        # 渲染 HTML（传递风格参数）
+        html_content = render_html(slides_data, style)
+        
+        # 截图生成图片
+        output_files = asyncio.run(capture_slides(html_content))
+        
+        # 读取图片并转为 base64
+        images = []
+        for filepath in output_files:
+            with open(filepath, 'rb') as f:
+                img_data = base64.b64encode(f.read()).decode('utf-8')
+                images.append({
+                    'filename': Path(filepath).name,
+                    'data': f'data:image/png;base64,{img_data}'
+                })
+        
+        return jsonify({
+            'success': True,
+            'slides_data': slides_data,
+            'images': images,
+            'count': len(images)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/preview', methods=['POST'])
+def preview():
+    """预览模式：只调用 AI 生成内容，不渲染图片"""
+    try:
+        data = request.json
+        content = data.get('content', '')
+        
+        if not content or len(content.strip()) < 50:
+            return jsonify({'error': '内容太短，请输入至少 50 字'}), 400
+        
+        print(f"🤖 调用 AI 生成内容（预览模式）")
+        
+        # 调用 AI 生成幻灯片内容
+        slides_data = summarize_to_slides(content)
+        
+        return jsonify({
+            'success': True,
+            'slides_data': slides_data
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/render', methods=['POST'])
+def render():
+    """渲染模式：使用已有的 JSON 数据渲染图片"""
+    try:
+        data = request.json
+        slides_data = data.get('slides_data')
+        style = data.get('style', 'xiaohongshu')
+        
+        if not slides_data:
+            return jsonify({'error': '缺少幻灯片数据'}), 400
+        
+        print(f"🎨 渲染图片 (风格: {style})")
+        
+        # 渲染 HTML
+        html_content = render_html(slides_data, style)
+        
+        # 截图生成图片
+        output_files = asyncio.run(capture_slides(html_content))
+        
+        # 读取图片并转为 base64
+        images = []
+        for filepath in output_files:
+            with open(filepath, 'rb') as f:
+                img_data = base64.b64encode(f.read()).decode('utf-8')
+                images.append({
+                    'filename': Path(filepath).name,
+                    'data': f'data:image/png;base64,{img_data}'
+                })
+        
+        return jsonify({
+            'success': True,
+            'images': images,
+            'count': len(images)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/regenerate-slide', methods=['POST'])
+def regenerate_slide():
+    """重新生成单张幻灯片内容"""
+    try:
+        data = request.json
+        slide_index = data.get('slide_index')  # 0 表示封面，1+ 表示内容页
+        original_content = data.get('original_content', '')  # 原始长文
+        current_slides_data = data.get('slides_data')
+        
+        if slide_index is None or not current_slides_data:
+            return jsonify({'error': '缺少必要参数'}), 400
+        
+        print(f"🔄 重新生成第 {slide_index} 张幻灯片")
+        
+        import google.generativeai as genai
+        import config
+        
+        genai.configure(api_key=config.GEMINI_API_KEY)
+        model = genai.GenerativeModel(config.MODEL_NAME)
+        
+        if slide_index == 0:
+            # 重新生成封面
+            prompt = f"""你是一个专业的内容编辑，擅长创作小红书风格的封面。
+
+当前封面内容：
+- 标题：{current_slides_data.get('cover_title', '')}
+- 副标题：{current_slides_data.get('cover_subtitle', '')}
+- 标签：{current_slides_data.get('cover_tags', [])}
+
+请根据以下原文，重新创作一个不同风格的封面，输出 JSON 格式：
+{{
+    "cover_title": "新的封面大标题（简短有力，10字以内）",
+    "cover_subtitle": "新的封面副标题（一句话概括文章主旨）",
+    "cover_tags": ["标签1", "标签2", "标签3"]
+}}
+
+要求：
+1. 与原封面风格不同，但同样吸引眼球
+2. 标题要使用小红书风格的表达
+3. 标签要与文章主题相关，3-5个
+
+原文内容：
+{original_content[:2000]}
+
+只输出 JSON，不要其他内容。"""
+        else:
+            # 重新生成内容页
+            slide_idx = slide_index - 1
+            current_slide = current_slides_data.get('slides', [])[slide_idx] if slide_idx < len(current_slides_data.get('slides', [])) else {}
+            
+            prompt = f"""你是一个专业的内容编辑，擅长创作小红书风格的内容页。
+
+当前第 {slide_index} 张内容页：
+- 标题：{current_slide.get('title', '')}
+- 内容：{current_slide.get('content', [])}
+
+请根据以下原文，重新创作这一页的内容，输出 JSON 格式：
+{{
+    "title": "新的幻灯片标题（8字以内）",
+    "content": ["要点1", "要点2", "要点3", "要点4"]
+}}
+
+要求：
+1. 与原内容风格不同，但保持核心信息
+2. 标题简洁有力
+3. 每个要点控制在 35 字以内
+4. 内容要有信息量，不要空泛
+
+原文内容：
+{original_content[:2000]}
+
+只输出 JSON，不要其他内容。"""
+        
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.GenerationConfig(
+                temperature=0.9,  # 提高随机性以获得不同结果
+                response_mime_type="application/json",
+            ),
+        )
+        
+        new_content = json.loads(response.text)
+        
+        # 更新 slides_data
+        if slide_index == 0:
+            current_slides_data['cover_title'] = new_content.get('cover_title', current_slides_data.get('cover_title'))
+            current_slides_data['cover_subtitle'] = new_content.get('cover_subtitle', current_slides_data.get('cover_subtitle'))
+            current_slides_data['cover_tags'] = new_content.get('cover_tags', current_slides_data.get('cover_tags'))
+        else:
+            slide_idx = slide_index - 1
+            if slide_idx < len(current_slides_data.get('slides', [])):
+                current_slides_data['slides'][slide_idx] = new_content
+        
+        return jsonify({
+            'success': True,
+            'slides_data': current_slides_data,
+            'regenerated_index': slide_index
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/regenerate-style', methods=['POST'])
+def regenerate_style():
+    """使用已有的 JSON 数据重新生成不同风格的图片"""
+    try:
+        data = request.json
+        slides_data = data.get('slides_data')
+        style = data.get('style', 'xiaohongshu')
+        
+        if not slides_data:
+            return jsonify({'error': '缺少幻灯片数据'}), 400
+        
+        print(f"🎨 切换风格到: {style} (不调用 AI，使用已有数据)")
+        
+        # 使用已有数据渲染新风格的 HTML
+        html_content = render_html(slides_data, style)
+        
+        # 截图生成图片
+        output_files = asyncio.run(capture_slides(html_content))
+        
+        # 读取图片并转为 base64
+        images = []
+        for filepath in output_files:
+            with open(filepath, 'rb') as f:
+                img_data = base64.b64encode(f.read()).decode('utf-8')
+                images.append({
+                    'filename': Path(filepath).name,
+                    'data': f'data:image/png;base64,{img_data}'
+                })
+        
+        return jsonify({
+            'success': True,
+            'images': images,
+            'count': len(images)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/download/<filename>')
+def download(filename):
+    """下载单张图片"""
+    filepath = Path('output') / filename
+    if filepath.exists():
+        return send_file(filepath, as_attachment=True)
+    return jsonify({'error': '文件不存在'}), 404
+
+@app.route('/download-all')
+def download_all():
+    """下载所有图片（ZIP）"""
+    output_dir = Path('output')
+    png_files = list(output_dir.glob('slide_*.png'))
+    
+    if not png_files:
+        return jsonify({'error': '没有可下载的图片'}), 404
+    
+    # 创建 ZIP 文件
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for filepath in sorted(png_files):
+            zf.write(filepath, filepath.name)
+    
+    zip_buffer.seek(0)
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name='xiaohongshu_slides.zip'
+    )
+
+if __name__ == '__main__':
+    Path('output').mkdir(exist_ok=True)
+    app.run(debug=True, port=5000)

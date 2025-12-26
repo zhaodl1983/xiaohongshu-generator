@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capsule 胶囊风</title>
+    <style>
+        :root {
+            --bg-page: #000000;
+            --bg-card: #111111;
+            --primary: #33FF00;
+            /* Neon Green */
+            --secondary: #FFFFFF;
+            --surface: #1A1A1A;
+            --border: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+            background: var(--bg-page);
+            padding: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 1242px;
+            height: 1660px;
+            background: var(--bg-card);
+            border-radius: 48px;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid var(--border);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 60px;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            color: #666;
+            font-size: 24px;
+            background: var(--surface);
+        }
+
+        .status-dots {
+            display: flex;
+            gap: 12px;
+        }
+
+        .dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #333;
+        }
+
+        .dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Cover */
+        .card-cover {
+            align-items: center;
+            justify-content: center;
+            padding: 100px;
+            text-align: center;
+        }
+
+        .pill-shape {
+            padding: 16px 40px;
+            border: 2px solid var(--primary);
+            border-radius: 100px;
+            color: var(--primary);
+            font-size: 32px;
+            margin-bottom: 60px;
+            letter-spacing: 2px;
+            background: rgba(51, 255, 0, 0.1);
+        }
+
+        .cover-title {
+            font-size: 100px;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 40px;
+            line-height: 1.1;
+            letter-spacing: -2px;
+        }
+
+        .cover-subtitle {
+            font-size: 40px;
+            color: #888;
+            max-width: 900px;
+            line-height: 1.5;
+        }
+
+        .cover-tags {
+            margin-top: 60px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cover-tag {
+            padding: 12px 28px;
+            background: rgba(51, 255, 0, 0.1);
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+
+        /* Content */
+        .card-content {
+            padding: 60px;
+        }
+
+        .header-block {
+            margin-bottom: 60px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 40px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .slide-index {
+            font-size: 120px;
+            line-height: 0.8;
+            font-weight: 700;
+            color: var(--surface);
+            -webkit-text-stroke: 2px var(--border);
+        }
+
+        .slide-title {
+            font-size: 60px;
+            color: var(--secondary);
+            font-weight: 700;
+            line-height: 1.2;
+            flex: 1;
+            margin-left: 40px;
+        }
+
+        .content-list {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .content-capsule {
+            background: var(--surface);
+            padding: 40px 50px;
+            border-radius: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .capsule-bullet {
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin-top: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .content-text {
+            font-size: 40px;
+            color: #DDD;
+            line-height: 1.5;
+        }
+
+        .footer-info {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #444;
+            font-size: 24px;
+            letter-spacing: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Cover -->
+    <div class="card card-cover" id="card-1">
+        <div class="status-bar" style="position:absolute; top:0; left:0; right:0;">
+            <div class="status-dots">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <span>SYS.READY</span>
+        </div>
+
+        <div class="pill-shape">CAPSULE CORE</div>
+        <h1 class="cover-title">{{ cover_title }}</h1>
+        <p class="cover-subtitle">{{ cover_subtitle }}</p>
+        
+        <!-- 动态标签 -->
+        <div class="cover-tags">
+            {% for tag in cover_tags %}
+            <span class="cover-tag">#{{ tag }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Content -->
+    {% for slide in slides %}
+    <div class="card card-content" id="card-{{ loop.index + 1 }}">
+        <div class="header-block">
+            <div class="slide-index">{{ '%02d' % loop.index }}</div>
+            <h2 class="slide-title">{{ slide.title }}</h2>
+        </div>
+
+        <div class="content-list">
+            {% for item in slide.content %}
+            <div class="content-capsule">
+                <div class="capsule-bullet"></div>
+                <div class="content-text">{{ item }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="footer-info">/// SYSTEM_{{ loop.index }} ///</div>
+    </div>
+    {% endfor %}
+</body>
+
+</html>
