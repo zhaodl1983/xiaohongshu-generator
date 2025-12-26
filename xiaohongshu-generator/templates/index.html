@@ -373,7 +373,7 @@
             content: "📷";
         }
         
-        .download-all-btn {
+        .download-all-btn, .back-edit-btn {
             display: none;
             align-items: center;
             gap: 8px;
@@ -388,17 +388,30 @@
             transition: all 0.2s;
         }
         
-        .download-all-btn:hover {
+        .back-edit-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .download-all-btn:hover, .back-edit-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
-        .download-all-btn:active {
+        .back-edit-btn:hover {
+            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+        }
+        
+        .download-all-btn:active, .back-edit-btn:active {
             transform: translateY(0);
         }
         
-        .download-all-btn.visible {
+        .download-all-btn.visible, .back-edit-btn.visible {
             display: flex;
+        }
+        
+        .preview-actions {
+            display: flex;
+            gap: 12px;
         }
         
         .slides-grid {
@@ -564,6 +577,16 @@
         .slide-edit-card.editing {
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .slide-edit-card.focused {
+            border-color: #f093fb;
+            box-shadow: 0 0 0 3px rgba(240, 147, 251, 0.2);
+        }
+        
+        .slide-edit-card.focused .image-slot {
+            border-color: #f093fb;
+            background: #fef5ff;
         }
         
         .slide-edit-header {
@@ -1146,9 +1169,14 @@
         <div class="preview-panel">
             <div class="preview-header">
                 <div class="preview-title">Preview</div>
-                <button class="download-all-btn" id="downloadAllBtn" onclick="downloadAll()">
-                    📦 批量下载
-                </button>
+                <div class="preview-actions">
+                    <button class="back-edit-btn" id="backEditBtn" onclick="backToEdit()">
+                        ✏️ 返回编辑
+                    </button>
+                    <button class="download-all-btn" id="downloadAllBtn" onclick="downloadAll()">
+                        📦 批量下载
+                    </button>
+                </div>
             </div>
             
             <!-- 空状态 -->
@@ -1251,7 +1279,8 @@
                 currentImages = data.images;
                 renderSlides(data.images);
                 
-                // 显示批量下载按钮
+                // 显示返回编辑和批量下载按钮
+                document.getElementById('backEditBtn').classList.add('visible');
                 document.getElementById('downloadAllBtn').classList.add('visible');
                 
             } catch (error) {
@@ -1354,17 +1383,17 @@
             
             // 图片插槽 HTML
             const imageSlotHtml = `
-                <div class="image-slot ${imageUrl ? 'has-image' : ''}" id="image-slot-${index}">
+                <div class="image-slot ${imageUrl ? 'has-image' : ''}" id="image-slot-${index}" onclick="setCardFocus(${index})">
                     <div class="image-slot-header">
-                        <span class="image-slot-label">📷 图片（可选）</span>
+                        <span class="image-slot-label">📷 图片（可选）- 点击此区域后可粘贴图片</span>
                         <div class="image-slot-actions">
-                            <button class="image-action-btn upload" onclick="triggerImageUpload(${index})">📤 上传</button>
-                            ${imageUrl ? `<button class="image-action-btn delete" onclick="deleteImage(${index})">🗑️ 删除</button>` : ''}
+                            <button class="image-action-btn upload" onclick="event.stopPropagation(); triggerImageUpload(${index})">📤 上传</button>
+                            ${imageUrl ? `<button class="image-action-btn delete" onclick="event.stopPropagation(); deleteImage(${index})">🗑️ 删除</button>` : ''}
                         </div>
                     </div>
                     <input type="file" class="hidden-file-input" id="file-input-${index}" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="handleFileSelect(event, ${index})">
                     ${imageUrl ? `
-                        <div class="image-preview-container">
+                        <div class="image-preview-container" onclick="event.stopPropagation(); setCardFocus(${index})">
                             <img src="${imageUrl}" alt="预览图片" id="image-preview-${index}">
                         </div>
                     ` : `
@@ -1372,9 +1401,9 @@
                              ondragover="handleDragOver(event, ${index})" 
                              ondragleave="handleDragLeave(event, ${index})"
                              ondrop="handleDrop(event, ${index})"
-                             onclick="triggerImageUpload(${index})">
+                             onclick="event.stopPropagation(); setCardFocus(${index}); triggerImageUpload(${index})">
                             <div class="image-drop-zone-icon">🖼️</div>
-                            <div class="image-drop-zone-text">点击上传或拖拽图片到此处<br>支持粘贴 (Ctrl+V)</div>
+                            <div class="image-drop-zone-text">点击上传或拖拽图片到此处<br>或点击后按 Ctrl+V 粘贴</div>
                         </div>
                     `}
                 </div>
@@ -1511,14 +1540,14 @@
             slot.classList.add('has-image');
             slot.innerHTML = `
                 <div class="image-slot-header">
-                    <span class="image-slot-label">📷 图片（可选）</span>
+                    <span class="image-slot-label">📷 图片（可选）- 点击此区域后可粘贴图片</span>
                     <div class="image-slot-actions">
-                        <button class="image-action-btn upload" onclick="triggerImageUpload(${index})">📤 替换</button>
-                        <button class="image-action-btn delete" onclick="deleteImage(${index})">🗑️ 删除</button>
+                        <button class="image-action-btn upload" onclick="event.stopPropagation(); triggerImageUpload(${index})">📤 替换</button>
+                        <button class="image-action-btn delete" onclick="event.stopPropagation(); deleteImage(${index})">🗑️ 删除</button>
                     </div>
                 </div>
                 <input type="file" class="hidden-file-input" id="file-input-${index}" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="handleFileSelect(event, ${index})">
-                <div class="image-preview-container">
+                <div class="image-preview-container" onclick="event.stopPropagation(); setCardFocus(${index})">
                     <img src="${imageData}" alt="预览图片" id="image-preview-${index}">
                 </div>
             `;
@@ -1537,9 +1566,9 @@
             slot.classList.remove('has-image');
             slot.innerHTML = `
                 <div class="image-slot-header">
-                    <span class="image-slot-label">📷 图片（可选）</span>
+                    <span class="image-slot-label">📷 图片（可选）- 点击此区域后可粘贴图片</span>
                     <div class="image-slot-actions">
-                        <button class="image-action-btn upload" onclick="triggerImageUpload(${index})">📤 上传</button>
+                        <button class="image-action-btn upload" onclick="event.stopPropagation(); triggerImageUpload(${index})">📤 上传</button>
                     </div>
                 </div>
                 <input type="file" class="hidden-file-input" id="file-input-${index}" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="handleFileSelect(event, ${index})">
@@ -1547,14 +1576,16 @@
                      ondragover="handleDragOver(event, ${index})" 
                      ondragleave="handleDragLeave(event, ${index})"
                      ondrop="handleDrop(event, ${index})"
-                     onclick="triggerImageUpload(${index})">
+                     onclick="event.stopPropagation(); setCardFocus(${index}); triggerImageUpload(${index})">
                     <div class="image-drop-zone-icon">🖼️</div>
-                    <div class="image-drop-zone-text">点击上传或拖拽图片到此处<br>支持粘贴 (Ctrl+V)</div>
+                    <div class="image-drop-zone-text">点击上传或拖拽图片到此处<br>或点击后按 Ctrl+V 粘贴</div>
                 </div>
             `;
         }
         
         // 全局粘贴事件处理
+        let lastFocusedCardIndex = null; // 记录最后聚焦的卡片索引
+        
         document.addEventListener('paste', function(event) {
             // 检查是否在预览编辑面板中
             const previewEditPanel = document.getElementById('previewEditPanel');
@@ -1572,8 +1603,8 @@
                     
                     const file = items[i].getAsFile();
                     
-                    // 找到当前聚焦的卡片或第一个没有图片的卡片
-                    let targetIndex = findTargetImageSlot();
+                    // 使用最后聚焦的卡片索引，如果没有则找第一个没有图片的
+                    let targetIndex = lastFocusedCardIndex !== null ? lastFocusedCardIndex : findFirstEmptyImageSlot();
                     if (targetIndex !== null) {
                         processImageFile(file, targetIndex);
                     }
@@ -1582,18 +1613,8 @@
             }
         });
         
-        function findTargetImageSlot() {
-            // 优先找当前聚焦的编辑卡片
-            const activeElement = document.activeElement;
-            if (activeElement) {
-                const card = activeElement.closest('.slide-edit-card');
-                if (card) {
-                    const index = parseInt(card.id.replace('edit-card-', ''));
-                    return index;
-                }
-            }
-            
-            // 否则找第一个没有图片的卡片
+        function findFirstEmptyImageSlot() {
+            // 找第一个没有图片的卡片
             const totalCards = 1 + (currentSlidesData.slides?.length || 0);
             for (let i = 0; i < totalCards; i++) {
                 const hasImage = i === 0 ? currentSlidesData.cover_image : currentSlidesData.slides[i - 1]?.image;
@@ -1601,9 +1622,21 @@
                     return i;
                 }
             }
-            
             // 如果都有图片，返回封面
             return 0;
+        }
+        
+        // 设置卡片聚焦状态
+        function setCardFocus(index) {
+            lastFocusedCardIndex = index;
+            // 高亮当前聚焦的卡片
+            document.querySelectorAll('.slide-edit-card').forEach(card => {
+                card.classList.remove('focused');
+            });
+            const focusedCard = document.getElementById(`edit-card-${index}`);
+            if (focusedCard) {
+                focusedCard.classList.add('focused');
+            }
         }
         
         // HTML 转义
@@ -1818,7 +1851,8 @@
                 previewEditPanel.classList.remove('visible');
                 slidesGrid.style.display = 'grid';
                 
-                // 显示批量下载按钮
+                // 显示返回编辑和批量下载按钮
+                document.getElementById('backEditBtn').classList.add('visible');
                 document.getElementById('downloadAllBtn').classList.add('visible');
                 
             } catch (error) {
@@ -1918,6 +1952,23 @@
                 return;
             }
             window.location.href = '/download-all';
+        }
+        
+        // 返回编辑模式
+        function backToEdit() {
+            const previewEditPanel = document.getElementById('previewEditPanel');
+            const slidesGrid = document.getElementById('slidesGrid');
+            
+            // 隐藏图片网格，显示编辑面板
+            slidesGrid.style.display = 'none';
+            
+            // 重新渲染编辑面板（使用当前的 slidesData）
+            renderPreviewEdit(currentSlidesData);
+            previewEditPanel.classList.add('visible');
+            
+            // 隐藏返回编辑和下载按钮
+            document.getElementById('backEditBtn').classList.remove('visible');
+            document.getElementById('downloadAllBtn').classList.remove('visible');
         }
         
         // 打开图片查看器

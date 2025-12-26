@@ -225,9 +225,21 @@ def summarize_to_slides(content: str, image_urls: list[str] = None) -> dict:
     if 'cover_image' not in result:
         result['cover_image'] = None
     
-    for slide in result.get('slides', []):
+    # 验证和修复每个 slide 的数据完整性
+    for i, slide in enumerate(result.get('slides', []), 1):
+        # 确保有 image 字段
         if 'image' not in slide:
             slide['image'] = None
+        
+        # 确保 title 字段存在且不为空
+        if 'title' not in slide or not slide['title'] or not slide['title'].strip():
+            slide['title'] = f"第 {i} 部分"  # 提供默认标题
+            print(f"⚠️  警告: 第 {i} 张幻灯片缺少标题，已自动补充默认标题")
+        
+        # 确保 content 字段存在且为列表
+        if 'content' not in slide or not isinstance(slide['content'], list):
+            slide['content'] = []
+            print(f"⚠️  警告: 第 {i} 张幻灯片缺少内容")
     
     return result
 

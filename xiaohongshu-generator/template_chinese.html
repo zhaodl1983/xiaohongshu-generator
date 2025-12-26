@@ -120,23 +120,25 @@
             letter-spacing: 2px;
         }
 
-        /* 图片样式 */
+        /* 图片样式 - 统一尺寸和布局 */
+        .image-container {
+            width: 100%;
+            flex: 1;
+            min-height: 300px;
+            max-height: 500px;
+            margin-top: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
         .card-image {
-            max-width: 100%;
-            max-height: 40%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             border-radius: 4px;
             border: 2px solid rgba(192, 72, 81, 0.3);
-        }
-
-        .cover-image {
-            margin-top: 30px;
-            margin-bottom: 20px;
-        }
-
-        .slide-image {
-            margin-top: 24px;
-            margin-bottom: 20px;
         }
 
         .card-content {
@@ -180,7 +182,7 @@
         }
 
         .content-wrapper {
-            flex: 1;
+            flex: 0 0 auto;
             display: flex;
             flex-direction: column;
             gap: 32px;
@@ -228,7 +230,9 @@
             <p class="cover-subtitle">{{ cover_subtitle }}</p>
             
             {% if cover_image %}
-            <img class="card-image cover-image" src="{{ cover_image }}" alt="封面图片">
+            <div class="image-container">
+                <img class="card-image" src="{{ cover_image }}" alt="封面图片">
+            </div>
             {% endif %}
             
             <!-- 动态标签 -->
@@ -254,7 +258,9 @@
             </div>
             {% endfor %}
             {% if slide.image %}
-            <img class="card-image slide-image" src="{{ slide.image }}" alt="内容图片">
+            <div class="image-container">
+                <img class="card-image" src="{{ slide.image }}" alt="内容图片">
+            </div>
             {% endif %}
         </div>
         <div class="page-indicator">第 {{ loop.index + 1 }} 页</div>
