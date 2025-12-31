@@ -190,6 +190,13 @@ def summarize_to_slides(content: str, image_urls: list[str] = None) -> dict:
 4. 每张幻灯片的 content 包含 3-5 个要点
 5. 每个要点控制在 35 字以内，信息密度要高
 6. 内容要有逻辑递进，从引入到总结
+7. 【重要】每个要点必须以一个相关的 emoji 开头，emoji 要与要点内容语义相关，让内容更生动有趣
+
+Emoji 使用规范：
+- 每个要点开头必须有且仅有一个 emoji
+- emoji 要与要点内容高度相关（如：💰 用于金钱相关、📱 用于手机相关、⏰ 用于时间相关）
+- 避免重复使用相同的 emoji，尽量多样化
+- 常用 emoji 参考：✨💡🎯📌🔥💪🌟⭐️🎉🎊💰📱💻🎨🎬📚📖✅❌⚠️💯🏆🥇🔑🎁💎🌈🍀
 
 标签生成原则：
 - 标签要与文章主题高度相关
@@ -257,6 +264,7 @@ def render_html(slides_data: dict, style: str = "xiaohongshu") -> str:
         "memphis": "template_memphis.html",
         "chinese": "template_chinese.html",
         "polaroid": "template_polaroid.html",
+        "streaming": "template_streaming.html",
     }
     
     template_file = template_map.get(style, "template.html")
@@ -268,7 +276,13 @@ def render_html(slides_data: dict, style: str = "xiaohongshu") -> str:
 async def capture_slides(html_content: str, output_dir: str = "output") -> list[str]:
     """使用 Playwright 截图每张卡片"""
     # 确保输出目录存在
-    Path(output_dir).mkdir(exist_ok=True)
+    output_path = Path(output_dir)
+    output_path.mkdir(exist_ok=True)
+    
+    # 清理旧的图片文件，避免残留
+    for old_file in output_path.glob("slide_*.png"):
+        old_file.unlink()
+        print(f"🗑️ 已清理旧文件: {old_file.name}")
 
     # 创建临时 HTML 文件
     temp_html = Path("_temp_render.html")
@@ -294,10 +308,10 @@ async def capture_slides(html_content: str, output_dir: str = "output") -> list[
             if await card.count() == 0:
                 break
 
-            output_path = f"{output_dir}/slide_{card_index}.png"
-            await card.screenshot(path=output_path)
-            output_files.append(output_path)
-            print(f"✅ 已生成: {output_path}")
+            file_path = f"{output_dir}/slide_{card_index}.png"
+            await card.screenshot(path=file_path)
+            output_files.append(file_path)
+            print(f"✅ 已生成: {file_path}")
             card_index += 1
 
         await browser.close()

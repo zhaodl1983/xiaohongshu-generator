@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流光卡片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, 'SF Pro Display', 'PingFang SC', sans-serif;
+            background: #0a0a0a;
+            padding: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 1242px;
+            height: 1660px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+            border-radius: 48px;
+        }
+
+        /* 流光背景效果 */
+        .streaming-bg {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .light-beam {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                transparent 0deg,
+                rgba(99, 102, 241, 0.15) 60deg,
+                rgba(168, 85, 247, 0.15) 120deg,
+                transparent 180deg,
+                rgba(236, 72, 153, 0.15) 240deg,
+                rgba(59, 130, 246, 0.15) 300deg,
+                transparent 360deg
+            );
+            top: -50%;
+            left: -50%;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 光晕装饰 */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            z-index: 0;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            top: -100px;
+            right: -100px;
+        }
+
+        .orb-2 {
+            width: 350px;
+            height: 350px;
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            bottom: -80px;
+            left: -80px;
+        }
+
+        .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            top: 40%;
+            left: 20%;
+        }
+
+        /* 网格装饰 */
+        .grid-overlay {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 1;
+        }
+
+        /* 封面卡片 */
+        .card-cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 100px 80px;
+            text-align: center;
+        }
+
+        .cover-badge {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 40px;
+            border-radius: 100px;
+            font-size: 26px;
+            font-weight: 600;
+            color: #FFF;
+            margin-bottom: 50px;
+            letter-spacing: 3px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cover-title {
+            font-size: 110px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #e0e7ff 50%, #c7d2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.15;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 0 80px rgba(99, 102, 241, 0.5);
+        }
+
+        .cover-subtitle {
+            font-size: 44px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+            max-width: 900px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cover-tags {
+            margin-top: 60px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cover-tag {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 100px;
+            font-size: 26px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 图片样式 */
+        .image-container {
+            width: 100%;
+            flex: 1;
+            min-height: 280px;
+            max-height: 480px;
+            margin-top: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 内容卡片 */
+        .card-content {
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            padding: 60px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+
+        .slide-header {
+            margin-bottom: 48px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .slide-number {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #FFF;
+            flex-shrink: 0;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+        }
+
+        .slide-title {
+            font-size: 56px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .content-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 0 0 auto;
+        }
+
+        .content-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 28px 32px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .item-icon {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #6366f1, #ec4899);
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 16px;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+        }
+
+        .content-text {
+            font-size: 36px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .page-indicator {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        /* 底部装饰线 */
+        .bottom-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                #6366f1, 
+                #8b5cf6, 
+                #ec4899, 
+                #f43f5e, 
+                transparent
+            );
+            z-index: 2;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 封面 -->
+    <div class="card card-cover" id="card-1">
+        <div class="streaming-bg">
+            <div class="light-beam"></div>
+        </div>
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="glow-orb orb-3"></div>
+        <div class="grid-overlay"></div>
+        <div class="bottom-line"></div>
+
+        <div class="cover-badge">✨ 流光卡片</div>
+        <h1 class="cover-title">{{ cover_title }}</h1>
+        <p class="cover-subtitle">{{ cover_subtitle }}</p>
+        
+        {% if cover_image %}
+        <div class="image-container">
+            <img class="card-image" src="{{ cover_image }}" alt="封面图片">
+        </div>
+        {% endif %}
+        
+        <div class="cover-tags">
+            {% for tag in cover_tags %}
+            <span class="cover-tag">#{{ tag }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 内容页 -->
+    {% for slide in slides %}
+    <div class="card card-content" id="card-{{ loop.index + 1 }}">
+        <div class="streaming-bg">
+            <div class="light-beam"></div>
+        </div>
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="grid-overlay"></div>
+        <div class="bottom-line"></div>
+        
+        <div class="content-card">
+            <div class="slide-header">
+                <div class="slide-number">{{ '%02d' % loop.index }}</div>
+                <h2 class="slide-title">{{ slide.title }}</h2>
+            </div>
+
+            <div class="content-list">
+                {% for item in slide.content %}
+                <div class="content-item">
+                    <div class="item-icon"></div>
+                    <div class="content-text">{{ item }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if slide.image %}
+            <div class="image-container">
+                <img class="card-image" src="{{ slide.image }}" alt="内容图片">
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="page-indicator">{{ loop.index }} / {{ slides|length }}</div>
+    </div>
+    {% endfor %}
+</body>
+
+</html>

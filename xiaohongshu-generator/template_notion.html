@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion 效率风</title>
+    <title>Apple Notes 备忘录风格</title>
     <style>
         * {
             margin: 0;
@@ -13,8 +13,8 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
-            background: #F7F7F5;
+            font-family: -apple-system, 'SF Pro Text', 'PingFang SC', sans-serif;
+            background: #F2F2F7;
             padding: 40px;
             display: flex;
             flex-wrap: wrap;
@@ -31,189 +31,226 @@
             flex-shrink: 0;
         }
 
-        /* Cover */
-        .card-cover {
-            padding: 0;
+        /* 横线背景 - 更淡的线条 */
+        .lined-bg {
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                transparent,
+                transparent 55px,
+                #E8E8E8 55px,
+                #E8E8E8 56px
+            );
+            background-position: 0 160px;
+            z-index: 0;
+        }
+
+        /* 左侧红色竖线 - 去掉 */
+        .margin-line {
+            display: none;
+        }
+
+        /* 顶部黄色区域 - 改为白色 */
+        .header-bar {
+            background: #FFFFFF;
+            height: 180px;
+            padding: 50px 80px;
+            border-bottom: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        .note-date {
+            font-size: 24px;
+            color: #8E8E93;
+            margin-bottom: 16px;
+        }
+
+        /* 封面卡片 */
+        .card-cover .header-bar {
+            height: auto;
+            padding: 80px 80px 60px;
             display: flex;
             flex-direction: column;
-        }
-
-        .cover-image-area {
-            height: 600px;
-            background-color: #F0F0F0;
-            background-image: url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=1242&q=80');
-            background-size: cover;
-            background-position: center;
-        }
-
-        .cover-body {
-            padding: 0 100px 100px 100px;
-            margin-top: -80px;
-            z-index: 1;
-        }
-
-        .page-icon {
-            width: 160px;
-            height: 160px;
-            font-size: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            margin-bottom: 20px;
+            align-items: flex-start;
         }
 
         .cover-title {
             font-size: 100px;
             font-weight: 700;
-            color: #37352F;
+            color: #000000;
             line-height: 1.2;
-            margin-bottom: 40px;
-            padding-bottom: 40px;
-            border-bottom: 2px solid #EAE9E6;
+            margin-bottom: 32px;
+            position: relative;
+            z-index: 2;
         }
 
         .cover-subtitle {
-            font-size: 40px;
-            color: #787774;
-            line-height: 1.6;
+            font-size: 44px;
+            color: #8E8E93;
+            line-height: 1.5;
+            max-width: 1000px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cover-content {
+            padding: 40px 80px;
+            position: relative;
+            z-index: 2;
         }
 
         .cover-tags {
-            margin-top: 40px;
             display: flex;
-            gap: 12px;
+            gap: 16px;
             flex-wrap: wrap;
+            margin-top: 40px;
         }
 
         .cover-tag {
-            padding: 10px 24px;
-            background: #F1F1EF;
-            border-radius: 6px;
-            font-size: 24px;
+            padding: 14px 28px;
+            background: #F2F2F7;
+            border-radius: 20px;
+            font-size: 26px;
             font-weight: 500;
-            color: #37352F;
+            color: #000000;
         }
 
-        /* 图片样式 - 统一尺寸和布局 */
+        /* 图片样式 */
         .image-container {
             width: 100%;
             flex: 1;
-            min-height: 300px;
-            max-height: 500px;
-            margin-top: 50px;
+            min-height: 280px;
+            max-height: 480px;
+            margin-top: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            position: relative;
+            z-index: 2;
         }
 
         .card-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 16px;
+            border: 1px solid #E5E5E0;
         }
 
-        /* Content */
+        /* 内容卡片 */
         .card-content {
-            padding: 80px 100px;
             display: flex;
             flex-direction: column;
         }
 
         .slide-header {
-            margin-bottom: 60px;
-        }
-
-        .breadcrumb {
-            font-size: 24px;
-            color: #9B9A97;
-            margin-bottom: 20px;
+            background: #FFFFFF;
+            padding: 60px 80px 40px;
+            position: relative;
+            z-index: 2;
         }
 
         .slide-title {
-            font-size: 72px;
+            font-size: 64px;
             font-weight: 700;
-            color: #37352F;
+            color: #000000;
+            line-height: 1.2;
         }
 
-        .callout-block {
-            background: #F1F1EF;
-            padding: 40px;
-            border-radius: 8px;
-            margin-top: 20px;
+        .content-area {
+            padding: 20px 80px;
+            flex: 1;
             display: flex;
-            gap: 24px;
-            align-items: flex-start;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
         }
 
         .content-list {
-            margin-top: 40px;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 0;
             flex: 0 0 auto;
         }
 
-        .list-item {
+        .content-item {
             display: flex;
             align-items: flex-start;
             gap: 20px;
-            font-size: 40px;
-            line-height: 1.6;
-            color: #37352F;
+            padding: 20px 0;
+            min-height: 60px;
         }
 
         .checkbox {
             width: 32px;
             height: 32px;
-            border: 3px solid #37352F;
-            border-radius: 4px;
-            margin-top: 14px;
+            border: 2px solid #C7C7CC;
+            border-radius: 50%;
             flex-shrink: 0;
+            margin-top: 12px;
+            position: relative;
+            background: #FFFFFF;
         }
 
-        .checkbox.checked {
-            background: #2EAADC;
-            border-color: #2EAADC;
+        .checkbox::after {
+            content: '';
+            display: none;
         }
 
-        .highlight-bg {
-            background: #FDECC8;
-            /* Yellow */
-            padding: 4px 12px;
-            border-radius: 4px;
+        .content-text {
+            font-size: 38px;
+            color: #000000;
+            line-height: 1.6;
+            font-weight: 400;
         }
 
-        .footer-note {
-            margin-top: auto;
-            border-top: 1px solid #EAE9E6;
-            padding-top: 30px;
-            color: #9B9A97;
+        .page-indicator {
+            position: absolute;
+            bottom: 50px;
+            right: 60px;
             font-size: 24px;
-            display: flex;
-            justify-content: space-between;
+            color: #C7C7CC;
+            font-weight: 500;
+            z-index: 2;
+        }
+
+        /* 去掉装饰元素 */
+        .paper-edge {
+            display: none;
+        }
+
+        .paper-holes {
+            display: none;
         }
     </style>
 </head>
 
 <body>
-    <!-- Cover -->
+    <!-- 封面 -->
     <div class="card card-cover" id="card-1">
-        <div class="cover-image-area"></div>
-        <div class="cover-body">
-            <div class="page-icon">📑</div>
+        <div class="lined-bg"></div>
+        <div class="margin-line"></div>
+        <div class="paper-holes">
+            <div class="hole"></div>
+            <div class="hole"></div>
+            <div class="hole"></div>
+        </div>
+        
+        <div class="header-bar">
+            <div class="note-date">📝 备忘录</div>
             <h1 class="cover-title">{{ cover_title }}</h1>
             <p class="cover-subtitle">{{ cover_subtitle }}</p>
-            
+        </div>
+        
+        <div class="cover-content">
             {% if cover_image %}
             <div class="image-container">
                 <img class="card-image" src="{{ cover_image }}" alt="封面图片">
             </div>
             {% endif %}
             
-            <!-- 动态标签 -->
             <div class="cover-tags">
                 {% for tag in cover_tags %}
                 <span class="cover-tag">#{{ tag }}</span>
@@ -222,38 +259,39 @@
         </div>
     </div>
 
-    <!-- Content -->
+    <!-- 内容页 -->
     {% for slide in slides %}
     <div class="card card-content" id="card-{{ loop.index + 1 }}">
-        <div class="breadcrumb">Workspace / Project / {{ cover_title }}</div>
+        <div class="lined-bg"></div>
+        <div class="margin-line"></div>
+        <div class="paper-holes">
+            <div class="hole"></div>
+            <div class="hole"></div>
+            <div class="hole"></div>
+        </div>
+        
         <div class="slide-header">
             <h2 class="slide-title">{{ slide.title }}</h2>
         </div>
 
-        <div class="callout-block">
-            <span style="font-size: 50px;">💡</span>
-            <div style="font-size: 36px; line-height: 1.5;">Key Takeaways for this section.</div>
-        </div>
-
-        <div class="content-list">
-            {% for item in slide.content %}
-            <div class="list-item">
-                <div class="checkbox"></div>
-                <div class="text">{{ item }}</div>
+        <div class="content-area">
+            <div class="content-list">
+                {% for item in slide.content %}
+                <div class="content-item">
+                    <div class="checkbox"></div>
+                    <div class="content-text">{{ item }}</div>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+
+            {% if slide.image %}
+            <div class="image-container">
+                <img class="card-image" src="{{ slide.image }}" alt="内容图片">
+            </div>
+            {% endif %}
         </div>
 
-        {% if slide.image %}
-        <div class="image-container">
-            <img class="card-image" src="{{ slide.image }}" alt="内容图片">
-        </div>
-        {% endif %}
-
-        <div class="footer-note">
-            <span>Last edited today</span>
-            <span>Page {{ loop.index }}</span>
-        </div>
+        <div class="page-indicator">{{ loop.index }} / {{ slides|length }}</div>
     </div>
     {% endfor %}
 </body>

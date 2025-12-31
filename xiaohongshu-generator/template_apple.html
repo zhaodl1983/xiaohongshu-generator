@@ -38,38 +38,13 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 120px;
-        }
-
-        .cover-logo {
-            width: 120px;
-            height: 120px;
-            background: #000;
-            mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>') no-repeat center;
-            -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>') no-repeat center;
-            mask-size: contain;
-            -webkit-mask-size: contain;
-            background-color: #1d1d1f;
-            margin-bottom: 60px;
-            opacity: 0.8;
-            /* Note: Using a simple geometric shape as a placeholder for apple-like logo feel if SVG fails, but sticking to text/icon is safer */
-            display: none;
-            /* Hidden for now, cleaner with just text */
-        }
-
-        .cover-super-title {
-            font-size: 32px;
-            font-weight: 600;
-            color: #86868b;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 24px;
+            padding: 100px 100px;
         }
 
         .cover-title {
-            font-size: 110px;
+            font-size: 130px;
             font-weight: 600;
-            line-height: 1.05;
+            line-height: 1.1;
             margin-bottom: 40px;
             color: #1d1d1f;
             letter-spacing: -3px;
@@ -77,39 +52,38 @@
         }
 
         .cover-subtitle {
-            font-size: 48px;
+            font-size: 52px;
             font-weight: 400;
-            color: #1d1d1f;
+            color: #86868b;
             line-height: 1.4;
-            max-width: 900px;
+            max-width: 1000px;
             text-align: center;
         }
 
         .cover-tags {
-            margin-top: 80px;
+            margin-top: 60px;
             display: flex;
-            gap: 20px;
+            gap: 16px;
             flex-wrap: wrap;
             justify-content: center;
         }
 
         .cover-tag {
-            padding: 16px 36px;
+            padding: 14px 32px;
             background: #F5F5F7;
             border-radius: 100px;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 500;
             color: #1d1d1f;
-            letter-spacing: 0.5px;
         }
 
-        /* 图片样式 - 统一尺寸和布局 */
+        /* 图片样式 */
         .image-container {
             width: 100%;
             flex: 1;
-            min-height: 300px;
-            max-height: 500px;
-            margin-top: 50px;
+            min-height: 280px;
+            max-height: 480px;
+            margin-top: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -120,88 +94,80 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 28px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            border-radius: 24px;
         }
 
         /* 内容卡片 */
         .card-content {
-            padding: 80px;
+            padding: 80px 100px;
             display: flex;
             flex-direction: column;
         }
 
         .slide-header {
-            margin-bottom: 60px;
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid #E8E8ED;
         }
 
         .slide-eyebrow {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 600;
-            color: #0071e3;
+            color: #86868b;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .slide-title {
-            font-size: 80px;
+            font-size: 72px;
             font-weight: 600;
             color: #1d1d1f;
             line-height: 1.1;
-            letter-spacing: -2px;
+            letter-spacing: -1.5px;
         }
 
         .content-wrapper {
             flex: 0 0 auto;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 30px;
-            align-content: start;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
         }
 
         .content-item {
-            background: #F5F5F7;
-            padding: 48px;
-            border-radius: 28px;
-            transition: all 0.3s ease;
+            padding: 32px 0;
+            border-bottom: 1px solid #E8E8ED;
+            display: flex;
+            align-items: baseline;
+            gap: 24px;
         }
 
-        /* First item large */
-        .content-item:first-child {
-            background: #1d1d1f;
+        .content-item:last-child {
+            border-bottom: none;
         }
 
-        .content-item:first-child .content-text {
-            color: #f5f5f7;
-        }
-
-        .content-item:first-child .item-bullet {
-            background: #424245;
+        .item-number {
+            font-size: 28px;
+            font-weight: 600;
+            color: #86868b;
+            min-width: 48px;
+            flex-shrink: 0;
         }
 
         .content-text {
-            font-size: 42px;
-            line-height: 1.4;
+            font-size: 38px;
+            line-height: 1.5;
             color: #1d1d1f;
-            font-weight: 500;
-            letter-spacing: -0.5px;
-        }
-
-        .item-bullet {
-            width: 16px;
-            height: 16px;
-            background: #0071e3;
-            border-radius: 50%;
-            margin-bottom: 24px;
-            display: inline-block;
+            font-weight: 400;
+            letter-spacing: -0.3px;
         }
 
         .page-indicator {
             position: absolute;
-            bottom: 60px;
-            right: 80px;
-            font-size: 24px;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 22px;
             color: #86868b;
             font-weight: 500;
         }
@@ -211,7 +177,6 @@
 <body>
     <!-- 封面卡片 -->
     <div class="card card-cover" id="card-1">
-        <div class="cover-super-title">Expert Guide</div>
         <h1 class="cover-title">{{ cover_title }}</h1>
         <p class="cover-subtitle">{{ cover_subtitle }}</p>
         
@@ -221,7 +186,6 @@
         </div>
         {% endif %}
         
-        <!-- 动态标签 -->
         <div class="cover-tags">
             {% for tag in cover_tags %}
             <span class="cover-tag">#{{ tag }}</span>
@@ -239,7 +203,7 @@
         <div class="content-wrapper">
             {% for item in slide.content %}
             <div class="content-item">
-                <div class="item-bullet"></div>
+                <span class="item-number">{{ '%02d' % loop.index }}</span>
                 <div class="content-text">{{ item }}</div>
             </div>
             {% endfor %}
