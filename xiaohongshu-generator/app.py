@@ -13,6 +13,7 @@ import zipfile
 import io
 
 from main import summarize_to_slides, render_html, capture_slides, extract_images_from_markdown, filter_valid_images
+from sensitive_words import detect_sensitive_words, highlight_sensitive_words, get_sensitive_words_by_category
 
 app = Flask(__name__)
 
@@ -395,6 +396,55 @@ def download_all():
         as_attachment=True,
         download_name='xiaohongshu_slides.zip'
     )
+
+
+@app.route('/check-sensitive', methods=['POST'])
+def check_sensitive():
+    """敏感词检测 API"""
+    try:
+        data = request.json
+        content = data.get('content', '')
+        
+        if not content:
+            return jsonify({
+                'success': True,
+                'has_sensitive': False,
+                'total_count': 0,
+                'details': [],
+                'summary': {},
+                'highlighted_text': ''
+            })
+        
+        # 检测敏感词
+        result = detect_sensitive_words(content)
+        
+        # 生成高亮文本
+        highlighted_text = highlight_sensitive_words(content, result)
+        
+        return jsonify({
+            'success': True,
+            'has_sensitive': result['has_sensitive'],
+            'total_count': result['total_count'],
+            'details': result['details'],
+            'summary': result['summary'],
+            'highlighted_text': highlighted_text
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/get-sensitive-categories')
+def get_sensitive_categories():
+    """获取敏感词分类信息"""
+    try:
+        categories = get_sensitive_words_by_category()
+        return jsonify({
+            'success': True,
+            'categories': categories
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     Path('output').mkdir(exist_ok=True)
